@@ -28,13 +28,14 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    // ---------- Constructors ----------
+    @Column(name = "profile_picture") // Store file path or URL
+    private String profilePicture;
 
+    // ---------- Constructors ----------
     public User() {
     }
 
     // ---------- Getters & Setters ----------
-
     public Long getId() {
         return id;
     }
@@ -79,8 +80,15 @@ public class User {
         return role;
     }
 
-    // ✅ Role is ENUM (USER / ADMIN / VENDOR)
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }

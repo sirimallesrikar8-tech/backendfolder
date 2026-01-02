@@ -3,7 +3,7 @@ package com.eventapp.service;
 import com.eventapp.entity.*;
 import com.eventapp.repository.BookingRepository;
 import com.eventapp.repository.UserRepository;
-import com.eventapp.repository.VendorRepository;
+import com.eventapp.repository.VendorSlotRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,37 +19,50 @@ public class BookingService {
     private UserRepository userRepository;
 
     @Autowired
-    private VendorRepository vendorRepository;
+    private VendorSlotRepository slotRepository;
 
-    // Create booking
-    public Booking createBooking(Long userId, Long vendorId, Booking booking) {
+    // -------------------------
+    // Create booking by slot
+    // -------------------------
+    public Booking createBooking(Long userId, Long slotId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new RuntimeException("Vendor not found"));
 
+        VendorSlot slot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new RuntimeException("Slot not found"));
+
+        if (slot.getStatus() != SlotStatus.AVAILABLE) {
+            throw new RuntimeException("Slot is not available");
+        }
+
+        slot.setStatus(SlotStatus.BOOKED);
+        slotRepository.save(slot);
+
+        Booking booking = new Booking();
         booking.setUser(user);
-        booking.setVendor(vendor);
+        booking.setSlot(slot);
         booking.setStatus(BookingStatus.PENDING);
 
         return bookingRepository.save(booking);
     }
 
+    // -------------------------
     // Vendor view bookings
+    // -------------------------
     public List<Booking> getBookingsByVendor(Long vendorId) {
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new RuntimeException("Vendor not found"));
-        return bookingRepository.findByVendor(vendor);
+        return bookingRepository.findBySlot_Vendor_Id(vendorId);
     }
 
+    // -------------------------
     // User view bookings
+    // -------------------------
     public List<Booking> getBookingsByUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return bookingRepository.findByUser(user);
+        return bookingRepository.findByUser_Id(userId);
     }
 
-    // Update booking status (ACCEPT/REJECT)
+    // -------------------------
+    // Update booking status
+    // -------------------------
     public Booking updateBookingStatus(Long bookingId, BookingStatus status) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
@@ -57,7 +70,9 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
+    // -------------------------
     // Admin view all bookings
+    // -------------------------
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
     }
