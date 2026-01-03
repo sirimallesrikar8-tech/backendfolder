@@ -44,6 +44,7 @@ public class UserService {
             throw new RuntimeException("Email already exists");
         }
 
+        // ---------- Create User ----------
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
@@ -53,7 +54,9 @@ public class UserService {
 
         userRepository.save(user);
 
-        // Vendor registration
+        Long vendorId = null;
+
+        // ---------- Vendor Registration ----------
         if (request.getRole() == Role.VENDOR) {
 
             if (request.getBusinessName() == null || request.getBusinessName().isBlank()
@@ -72,8 +75,10 @@ public class UserService {
 
             vendorRepository.save(vendor);
 
-        } 
-        // Admin registration
+            vendorId = vendor.getId(); // ✅ IMPORTANT
+        }
+
+        // ---------- Admin Registration ----------
         else if (request.getRole() == Role.ADMIN) {
             Admin admin = new Admin();
             admin.setUser(user);
@@ -86,7 +91,8 @@ public class UserService {
         );
 
         return new LoginResponse(
-                user.getId(),
+                user.getId(),            // userId
+                vendorId,                // vendorId (null for USER / ADMIN)
                 user.getName(),
                 user.getEmail(),
                 user.getRole().toString(),
@@ -105,13 +111,19 @@ public class UserService {
             throw new RuntimeException("Invalid password");
         }
 
+        Long vendorId = null;
+
+        // ---------- Vendor Login ----------
         if (user.getRole() == Role.VENDOR) {
+
             Vendor vendor = vendorRepository.findByUser(user)
                     .orElseThrow(() -> new RuntimeException("Vendor profile not found"));
 
             if (vendor.getStatus() == Status.PENDING) {
                 throw new RuntimeException("Vendor approval pending");
             }
+
+            vendorId = vendor.getId(); // ✅ IMPORTANT
         }
 
         String token = jwtUtil.generateToken(
@@ -120,7 +132,8 @@ public class UserService {
         );
 
         return new LoginResponse(
-                user.getId(),
+                user.getId(),            // userId
+                vendorId,                // vendorId (null for USER / ADMIN)
                 user.getName(),
                 user.getEmail(),
                 user.getRole().toString(),
@@ -135,7 +148,6 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Validate image type
         String contentType = file.getContentType();
         if (contentType == null ||
                 (!contentType.equals("image/jpeg")
@@ -145,7 +157,6 @@ public class UserService {
         }
 
         try {
-            // Absolute path (works on local + server)
             String baseDir = System.getProperty("user.dir");
             Path uploadPath = Paths.get(baseDir, "uploads", "profile-pictures");
 
@@ -153,16 +164,13 @@ public class UserService {
                 Files.createDirectories(uploadPath);
             }
 
-            // Safe filename
             String extension = contentType.equals("image/png") ? ".png" : ".jpg";
             String fileName = "user_" + userId + extension;
 
             Path filePath = uploadPath.resolve(fileName);
 
-            // Save file
             Files.write(filePath, file.getBytes());
 
-            // Save relative path in DB
             user.setProfilePicture("/uploads/profile-pictures/" + fileName);
             return userRepository.save(user);
 
