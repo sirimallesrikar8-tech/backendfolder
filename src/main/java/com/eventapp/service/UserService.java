@@ -75,7 +75,7 @@ public class UserService {
 
             vendorRepository.save(vendor);
 
-            vendorId = vendor.getId(); // ✅ IMPORTANT
+            vendorId = vendor.getId();
         }
 
         // ---------- Admin Registration ----------
@@ -91,8 +91,8 @@ public class UserService {
         );
 
         return new LoginResponse(
-                user.getId(),            // userId
-                vendorId,                // vendorId (null for USER / ADMIN)
+                user.getId(),
+                vendorId,
                 user.getName(),
                 user.getEmail(),
                 user.getRole().toString(),
@@ -123,7 +123,7 @@ public class UserService {
                 throw new RuntimeException("Vendor approval pending");
             }
 
-            vendorId = vendor.getId(); // ✅ IMPORTANT
+            vendorId = vendor.getId();
         }
 
         String token = jwtUtil.generateToken(
@@ -132,8 +132,8 @@ public class UserService {
         );
 
         return new LoginResponse(
-                user.getId(),            // userId
-                vendorId,                // vendorId (null for USER / ADMIN)
+                user.getId(),
+                vendorId,
                 user.getName(),
                 user.getEmail(),
                 user.getRole().toString(),
@@ -168,7 +168,6 @@ public class UserService {
             String fileName = "user_" + userId + extension;
 
             Path filePath = uploadPath.resolve(fileName);
-
             Files.write(filePath, file.getBytes());
 
             user.setProfilePicture("/uploads/profile-pictures/" + fileName);
@@ -183,6 +182,28 @@ public class UserService {
     public User getUserProfile(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // ================= BUILD PROFILE RESPONSE (IMPORTANT) =================
+    public LoginResponse buildUserProfileResponse(User user) {
+
+        Long vendorId = null;
+
+        if (user.getRole() == Role.VENDOR) {
+            vendorId = vendorRepository.findByUser(user)
+                    .map(Vendor::getId)
+                    .orElse(null);
+        }
+
+        return new LoginResponse(
+                user.getId(),
+                vendorId,
+                user.getName(),
+                user.getEmail(),
+                user.getRole().toString(),
+                null,
+                user.getProfilePicture()
+        );
     }
 
     // ================= VENDOR MANAGEMENT =================

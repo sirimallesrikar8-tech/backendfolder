@@ -61,14 +61,8 @@ public class AuthController {
 
         User updatedUser = userService.saveProfilePicture(userId, file);
 
-        LoginResponse response = new LoginResponse(
-                updatedUser.getId(),
-                updatedUser.getName(),
-                updatedUser.getEmail(),
-                updatedUser.getRole().toString(),
-                null,
-                updatedUser.getProfilePicture()
-        );
+        // 🔹 vendorId will be fetched inside service
+        LoginResponse response = userService.buildUserProfileResponse(updatedUser);
 
         return ResponseEntity.ok(response);
     }
@@ -79,14 +73,8 @@ public class AuthController {
 
         User user = userService.getUserProfile(userId);
 
-        LoginResponse response = new LoginResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getRole().toString(),
-                null,
-                user.getProfilePicture()
-        );
+        // 🔹 vendorId handled inside service
+        LoginResponse response = userService.buildUserProfileResponse(user);
 
         return ResponseEntity.ok(response);
     }
