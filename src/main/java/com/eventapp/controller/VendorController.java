@@ -32,7 +32,7 @@ public class VendorController {
     private VendorReviewService vendorReviewService;
 
     @Autowired
-    private UserRepository userRepository; // ✅ Added to check user existence
+    private UserRepository userRepository; // ✅ For checking user existence
 
     // ---------------- POST A REVIEW FOR A VENDOR ----------------
     @PostMapping("/{vendorId}/reviews")
@@ -41,13 +41,13 @@ public class VendorController {
             @RequestBody ReviewRequestDTO reviewRequest
     ) {
         try {
-            // ✅ Validate that the user exists using UserRepository
+            // Validate that the user exists
             if (!userRepository.existsById(reviewRequest.getUserId())) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("User not found with ID: " + reviewRequest.getUserId());
             }
 
-            // Call the service to save the review
+            // Save the review
             VendorReview savedReview = vendorReviewService.addReview(vendorId, reviewRequest);
 
             // Map to DTO and return
@@ -60,19 +60,16 @@ public class VendorController {
             ));
 
         } catch (IllegalArgumentException ex) {
-            // For invalid rating
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         } catch (RuntimeException ex) {
-            // For vendor not found
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
         } catch (Exception ex) {
-            // Any unexpected errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Something went wrong: " + ex.getMessage());
         }
     }
 
-    // ------------------ REST OF YOUR CONTROLLER STAYS THE SAME ------------------
+    // ---------------- GET SINGLE VENDOR ----------------
     @GetMapping("/{vendorId}")
     public ResponseEntity<VendorResponseDTO> getVendorById(@PathVariable Long vendorId) {
         Vendor vendor = vendorRepository.findById(vendorId)
@@ -80,6 +77,7 @@ public class VendorController {
         return ResponseEntity.ok(mapToVendorResponse(vendor));
     }
 
+    // ---------------- GET ALL REVIEWS ----------------
     @GetMapping("/{vendorId}/reviews")
     public ResponseEntity<List<VendorReviewDTO>> getReviews(@PathVariable Long vendorId) {
         List<VendorReviewDTO> reviews = vendorReviewService.getReviews(vendorId)
@@ -89,9 +87,44 @@ public class VendorController {
         return ResponseEntity.ok(reviews);
     }
 
+    // ---------------- GET AVERAGE RATING ----------------
     @GetMapping("/{vendorId}/rating")
     public ResponseEntity<Double> getAverageRating(@PathVariable Long vendorId) {
         return ResponseEntity.ok(vendorReviewService.getAverageRating(vendorId));
+    }
+
+    // ---------------- GET VENDORS BY STATUS ----------------
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<VendorResponseDTO>> getVendorsByStatus(@PathVariable String status) {
+        Status st = Status.valueOf(status.toUpperCase());
+        List<Vendor> vendors = userService.getVendorsByStatus(st);
+        return ResponseEntity.ok(
+                vendors.stream()
+                        .map(this::mapToVendorResponse)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    // ---------------- SEARCH VENDORS BY NAME ----------------
+    @GetMapping("/search")
+    public ResponseEntity<List<VendorResponseDTO>> searchVendors(@RequestParam String name) {
+        return ResponseEntity.ok(
+                vendorRepository.searchByBusinessName(name)
+                        .stream()
+                        .map(this::mapToVendorResponse)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    // ---------------- GET VENDORS BY LOCATION ----------------
+    @GetMapping("/location")
+    public ResponseEntity<List<VendorResponseDTO>> getVendorsByLocation(@RequestParam String location) {
+        return ResponseEntity.ok(
+                vendorRepository.findApprovedByLocation(location)
+                        .stream()
+                        .map(this::mapToVendorResponse)
+                        .collect(Collectors.toList())
+        );
     }
 
     // ---------------- MAPPING METHODS ----------------
@@ -108,7 +141,9 @@ public class VendorController {
 
         if (vendor.getReviews() != null) {
             dto.setReviews(vendor.getReviews()
-                    .stream().map(this::mapToReviewDTO).collect(Collectors.toList()));
+                    .stream()
+                    .map(this::mapToReviewDTO)
+                    .collect(Collectors.toList()));
         }
         return dto;
     }
