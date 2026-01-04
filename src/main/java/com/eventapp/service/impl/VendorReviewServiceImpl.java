@@ -1,6 +1,6 @@
 package com.eventapp.service.impl;
 
-import com.eventapp.controller.VendorController.ReviewRequest;
+import com.eventapp.dto.ReviewRequestDTO;
 import com.eventapp.entity.Vendor;
 import com.eventapp.entity.VendorReview;
 import com.eventapp.repository.VendorRepository;
@@ -23,9 +23,7 @@ public class VendorReviewServiceImpl implements VendorReviewService {
 
     // ================= ADD REVIEW =================
     @Override
-    public VendorReview addReview(Long vendorId, Object requestObj) {
-
-        ReviewRequest request = (ReviewRequest) requestObj;
+    public VendorReview addReview(Long vendorId, ReviewRequestDTO request) {
 
         // ✅ Validate rating (VERY IMPORTANT)
         if (request.getRating() < 1 || request.getRating() > 5) {
@@ -62,12 +60,11 @@ public class VendorReviewServiceImpl implements VendorReviewService {
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new RuntimeException("Vendor not found"));
 
-        // ✅ Ignore rating = 0
         List<VendorReview> reviews = vendorReviewRepository.findByVendor(vendor);
 
         return reviews.stream()
                 .mapToInt(VendorReview::getRating)
-                .filter(rating -> rating > 0)     // 🔥 key fix
+                .filter(rating -> rating > 0)
                 .average()
                 .orElse(0.0);
     }
