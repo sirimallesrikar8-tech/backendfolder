@@ -1,5 +1,6 @@
 package com.eventapp.controller;
 
+import com.eventapp.dto.ReviewRequestDTO;
 import com.eventapp.dto.VendorResponseDTO;
 import com.eventapp.dto.VendorReviewDTO;
 import com.eventapp.entity.Status;
@@ -67,6 +68,18 @@ public class VendorController {
         return ResponseEntity.ok(
                 vendorReviewService.getAverageRating(vendorId)
         );
+    }
+
+    // ---------------------------------------------------
+    // ⭐ POST A REVIEW FOR A VENDOR
+    // ---------------------------------------------------
+    @PostMapping("/{vendorId}/reviews")
+    public ResponseEntity<VendorReviewDTO> addReview(
+            @PathVariable Long vendorId,
+            @RequestBody ReviewRequestDTO reviewRequest
+    ) {
+        VendorReview savedReview = vendorReviewService.addReview(vendorId, reviewRequest);
+        return ResponseEntity.ok(mapToReviewDTO(savedReview));
     }
 
     // ---------------------------------------------------
