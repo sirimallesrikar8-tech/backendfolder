@@ -1,5 +1,6 @@
 package com.eventapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -28,11 +29,9 @@ public class Vendor {
     @Column
     private String location;
 
-    // ✅ Profile image (logo/avatar)
     @Column(name = "profile_image")
     private String profileImage;
 
-    // ✅ Cover image (banner)
     @Column(name = "cover_image")
     private String coverImage;
 
@@ -42,22 +41,21 @@ public class Vendor {
 
     // ---------------- RELATIONSHIPS ----------------
 
-    // Vendor slots
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VendorSlot> slots;
 
-    // Vendor gallery (photos like Instagram)
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VendorMedia> mediaList;
 
-    // Vendor reviews
+    // ⭐ FIXED: prevents infinite JSON loop
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<VendorReview> reviews;
 
-    // ---------- Constructors ----------
     public Vendor() {}
 
-    // ---------- Getters & Setters ----------
+    // ---------------- GETTERS & SETTERS ----------------
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

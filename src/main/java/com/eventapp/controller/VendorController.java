@@ -1,5 +1,7 @@
 package com.eventapp.controller;
 
+import com.eventapp.dto.VendorResponseDTO;
+import com.eventapp.dto.VendorReviewDTO;
 import com.eventapp.entity.Status;
 import com.eventapp.entity.Vendor;
 import com.eventapp.entity.VendorReview;
@@ -10,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,65 +32,29 @@ public class VendorController {
     // ✅ GET SINGLE VENDOR PROFILE
     // ---------------------------------------------------
     @GetMapping("/{vendorId}")
-    public ResponseEntity<VendorDTO> getVendorById(@PathVariable Long vendorId) {
+    public ResponseEntity<VendorResponseDTO> getVendorById(@PathVariable Long vendorId) {
 
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new RuntimeException("Vendor not found"));
 
-        return ResponseEntity.ok(new VendorDTO(vendor));
+        return ResponseEntity.ok(mapToVendorResponse(vendor));
     }
 
     // ---------------------------------------------------
-    // ✅ UPDATE VENDOR PROFILE
-    // ---------------------------------------------------
-    @PutMapping("/{vendorId}")
-    public ResponseEntity<VendorDTO> updateVendor(
-            @PathVariable Long vendorId,
-            @RequestBody VendorUpdateRequest request
-    ) {
-
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new RuntimeException("Vendor not found"));
-
-        vendor.setBusinessName(request.getBusinessName());
-        vendor.setCategory(request.getCategory());
-        vendor.setPhone(request.getPhone());
-        vendor.setLocation(request.getLocation());
-
-        vendorRepository.save(vendor);
-
-        return ResponseEntity.ok(new VendorDTO(vendor));
-    }
-
-    // ---------------------------------------------------
-    // ⭐ ADD RATING & REVIEW
-    // ---------------------------------------------------
-    @PostMapping("/{vendorId}/reviews")
-    public ResponseEntity<ReviewResponseDTO> addReview(
-            @PathVariable Long vendorId,
-            @RequestBody ReviewRequest request
-    ) {
-
-        VendorReview review = vendorReviewService.addReview(vendorId, request);
-
-        return ResponseEntity.ok(new ReviewResponseDTO(review));
-    }
-
-    // ---------------------------------------------------
-    // ⭐ GET ALL REVIEWS OF A VENDOR (FIXED FOR SWAGGER)
+    // ⭐ GET ALL REVIEWS OF A VENDOR
     // ---------------------------------------------------
     @GetMapping("/{vendorId}/reviews")
-    public ResponseEntity<List<ReviewResponseDTO>> getReviews(
+    public ResponseEntity<List<VendorReviewDTO>> getReviews(
             @PathVariable Long vendorId
     ) {
 
-        List<ReviewResponseDTO> response =
+        List<VendorReviewDTO> reviews =
                 vendorReviewService.getReviews(vendorId)
                         .stream()
-                        .map(ReviewResponseDTO::new)
+                        .map(this::mapToReviewDTO)
                         .collect(Collectors.toList());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(reviews);
     }
 
     // ---------------------------------------------------
@@ -105,10 +70,10 @@ public class VendorController {
     }
 
     // ---------------------------------------------------
-    // EXISTING APIs (UNCHANGED)
+    // EXISTING APIs
     // ---------------------------------------------------
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<VendorDTO>> getVendorsByStatus(
+    public ResponseEntity<List<VendorResponseDTO>> getVendorsByStatus(
             @PathVariable String status
     ) {
 
@@ -116,113 +81,73 @@ public class VendorController {
         List<Vendor> vendors = userService.getVendorsByStatus(st);
 
         return ResponseEntity.ok(
-                vendors.stream().map(VendorDTO::new).collect(Collectors.toList())
+                vendors.stream()
+                        .map(this::mapToVendorResponse)
+                        .collect(Collectors.toList())
         );
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<VendorDTO>> searchVendors(
+    public ResponseEntity<List<VendorResponseDTO>> searchVendors(
             @RequestParam String name
     ) {
 
         return ResponseEntity.ok(
                 vendorRepository.searchByBusinessName(name)
                         .stream()
-                        .map(VendorDTO::new)
+                        .map(this::mapToVendorResponse)
                         .collect(Collectors.toList())
         );
     }
 
     @GetMapping("/location")
-    public ResponseEntity<List<VendorDTO>> getVendorsByLocation(
+    public ResponseEntity<List<VendorResponseDTO>> getVendorsByLocation(
             @RequestParam String location
     ) {
 
         return ResponseEntity.ok(
                 vendorRepository.findApprovedByLocation(location)
                         .stream()
-                        .map(VendorDTO::new)
+                        .map(this::mapToVendorResponse)
                         .collect(Collectors.toList())
         );
     }
 
     // ---------------------------------------------------
-    // DTOs
+    // 🔁 MAPPING METHODS (VERY IMPORTANT)
     // ---------------------------------------------------
 
-    // ✅ Vendor DTO
-    public static class VendorDTO {
-        private Long id;
-        private String businessName;
-        private String category;
-        private String location;
-        private String phone;
-        private String userName;
-        private String userEmail;
+    private VendorResponseDTO mapToVendorResponse(Vendor vendor) {
+        VendorResponseDTO dto = new VendorResponseDTO();
 
-        public VendorDTO(Vendor vendor) {
-            this.id = vendor.getId();
-            this.businessName = vendor.getBusinessName();
-            this.category = vendor.getCategory();
-            this.location = vendor.getLocation();
-            this.phone = vendor.getPhone();
-            this.userName = vendor.getUser().getName();
-            this.userEmail = vendor.getUser().getEmail();
+        dto.setId(vendor.getId());
+        dto.setBusinessName(vendor.getBusinessName());
+        dto.setCategory(vendor.getCategory());
+        dto.setPhone(vendor.getPhone());
+        dto.setLocation(vendor.getLocation());
+        dto.setProfileImage(vendor.getProfileImage());
+        dto.setCoverImage(vendor.getCoverImage());
+        dto.setStatus(vendor.getStatus().name());
+
+        if (vendor.getReviews() != null) {
+            dto.setReviews(
+                    vendor.getReviews()
+                            .stream()
+                            .map(this::mapToReviewDTO)
+                            .collect(Collectors.toList())
+            );
         }
 
-        public Long getId() { return id; }
-        public String getBusinessName() { return businessName; }
-        public String getCategory() { return category; }
-        public String getLocation() { return location; }
-        public String getPhone() { return phone; }
-        public String getUserName() { return userName; }
-        public String getUserEmail() { return userEmail; }
+        return dto;
     }
 
-    // ✅ Vendor Update DTO
-    public static class VendorUpdateRequest {
-        private String businessName;
-        private String category;
-        private String phone;
-        private String location;
-
-        public String getBusinessName() { return businessName; }
-        public String getCategory() { return category; }
-        public String getPhone() { return phone; }
-        public String getLocation() { return location; }
-    }
-
-    // ✅ Review Request DTO
-    public static class ReviewRequest {
-        private Long userId;
-        private int rating;
-        private String review;
-
-        public Long getUserId() { return userId; }
-        public int getRating() { return rating; }
-        public String getReview() { return review; }
-    }
-
-    // ✅ Review Response DTO (FIXES SWAGGER)
-    public static class ReviewResponseDTO {
-        private Long id;
-        private Long userId;
-        private int rating;
-        private String review;
-        private LocalDateTime createdAt;
-
-        public ReviewResponseDTO(VendorReview review) {
-            this.id = review.getId();
-            this.userId = review.getUserId();
-            this.rating = review.getRating();
-            this.review = review.getReview();
-            this.createdAt = review.getCreatedAt();
-        }
-
-        public Long getId() { return id; }
-        public Long getUserId() { return userId; }
-        public int getRating() { return rating; }
-        public String getReview() { return review; }
-        public LocalDateTime getCreatedAt() { return createdAt; }
+    private VendorReviewDTO mapToReviewDTO(VendorReview review) {
+        return new VendorReviewDTO(
+                review.getId(),
+                review.getRating(),
+                review.getReview(),
+                review.getUserId(),
+                review.getCreatedAt()
+        );
     }
 }
