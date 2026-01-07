@@ -14,9 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 @Service
@@ -37,8 +34,8 @@ public class UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    private static final String UPLOAD_BASE_DIR = "uploads";
-    private static final String PROFILE_DIR = "profile-pictures";
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     // ================= REGISTER =================
     public LoginResponse register(RegisterRequest request) {
@@ -59,7 +56,6 @@ public class UserService {
         Long vendorId = null;
 
         if (request.getRole() == Role.VENDOR) {
-
             Vendor vendor = new Vendor();
             vendor.setUser(user);
             vendor.setBusinessName(request.getBusinessName());
@@ -78,10 +74,7 @@ public class UserService {
             adminRepository.save(admin);
         }
 
-        String token = jwtUtil.generateToken(
-                user.getEmail(),
-                user.getRole().toString()
-        );
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().toString());
 
         return new LoginResponse(
                 user.getId(),
@@ -90,7 +83,7 @@ public class UserService {
                 user.getEmail(),
                 user.getRole().toString(),
                 token,
-                user.getProfilePicture()
+                user.getProfilePicture() // ✅ Use profilePicture field
         );
     }
 
@@ -105,7 +98,6 @@ public class UserService {
         }
 
         Long vendorId = null;
-
         if (user.getRole() == Role.VENDOR) {
             Vendor vendor = vendorRepository.findByUser(user)
                     .orElseThrow(() -> new RuntimeException("Vendor profile not found"));
@@ -117,10 +109,7 @@ public class UserService {
             vendorId = vendor.getId();
         }
 
-        String token = jwtUtil.generateToken(
-                user.getEmail(),
-                user.getRole().toString()
-        );
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().toString());
 
         return new LoginResponse(
                 user.getId(),
@@ -129,11 +118,11 @@ public class UserService {
                 user.getEmail(),
                 user.getRole().toString(),
                 token,
-                user.getProfilePicture()
+                user.getProfilePicture() // ✅ Use profilePicture field
         );
     }
 
-    // ================= PROFILE PICTURE UPLOAD =================
+    // ================= PROFILE PICTURE UPLOAD (Cloudinary) =================
     public User saveProfilePicture(Long userId, MultipartFile file) {
 
         User user = userRepository.findById(userId)
@@ -148,17 +137,12 @@ public class UserService {
         }
 
         try {
-            Path uploadPath = Paths.get(UPLOAD_BASE_DIR, PROFILE_DIR);
-            Files.createDirectories(uploadPath);
+            // Upload file to Cloudinary
+            String imageUrl = cloudinaryService.uploadFile(file);
 
-            String extension = contentType.equals("image/png") ? ".png" : ".jpg";
-            String fileName = "user_" + userId + extension;
+            // Save Cloudinary URL
+            user.setProfilePicture(imageUrl); // ✅ Use profilePicture field
 
-            Path filePath = uploadPath.resolve(fileName);
-            Files.write(filePath, file.getBytes());
-
-            // ✅ Public URL
-            user.setProfilePicture("/uploads/profile-pictures/" + fileName);
             return userRepository.save(user);
 
         } catch (IOException e) {
@@ -176,7 +160,6 @@ public class UserService {
     public LoginResponse buildUserProfileResponse(User user) {
 
         Long vendorId = null;
-
         if (user.getRole() == Role.VENDOR) {
             vendorId = vendorRepository.findByUser(user)
                     .map(Vendor::getId)
@@ -189,8 +172,8 @@ public class UserService {
                 user.getName(),
                 user.getEmail(),
                 user.getRole().toString(),
-                null,
-                user.getProfilePicture()
+                null, // Token not needed here
+                user.getProfilePicture() // ✅ Use profilePicture field
         );
     }
 
