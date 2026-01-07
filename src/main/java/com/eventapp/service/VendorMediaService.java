@@ -8,33 +8,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class VendorMediaService {
 
     private final VendorMediaRepository mediaRepository;
     private final VendorRepository vendorRepository;
-
-    // ✅ MUST match WebConfig: file:uploads/
-    private static final String UPLOAD_BASE_DIR = "uploads";
-    private static final String VENDOR_MEDIA_DIR = "vendor-media";
+    private final CloudinaryService cloudinaryService;
 
     public VendorMediaService(
             VendorMediaRepository mediaRepository,
-            VendorRepository vendorRepository
+            VendorRepository vendorRepository,
+            CloudinaryService cloudinaryService
     ) {
         this.mediaRepository = mediaRepository;
         this.vendorRepository = vendorRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     // ================= UPLOAD IMAGE =================
     public VendorMedia uploadMedia(Long vendorId, MultipartFile file, String caption) {
-
         if (file == null || file.isEmpty()) {
             throw new RuntimeException("File is empty");
         }
@@ -43,29 +37,19 @@ public class VendorMediaService {
                 .orElseThrow(() -> new RuntimeException("Vendor not found"));
 
         try {
-            // uploads/vendor-media
-            Path uploadPath = Paths.get(UPLOAD_BASE_DIR, VENDOR_MEDIA_DIR);
-            Files.createDirectories(uploadPath);
+            // Upload image to Cloudinary
+            String imageUrl = cloudinaryService.uploadFile(file);
 
-            String safeFileName =
-                    UUID.randomUUID() + "_" + file.getOriginalFilename();
-
-            Path filePath = uploadPath.resolve(safeFileName);
-
-            // Save file
-            file.transferTo(filePath.toFile());
-
+            // Save media in DB
             VendorMedia media = new VendorMedia();
             media.setVendor(vendor);
             media.setCaption(caption);
-
-            // ✅ PUBLIC URL (served by WebConfig)
-            media.setImageUrl("/uploads/vendor-media/" + safeFileName);
+            media.setImageUrl(imageUrl);
 
             return mediaRepository.save(media);
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload vendor media", e);
+            throw new RuntimeException("Failed to upload vendor media to Cloudinary", e);
         }
     }
 
@@ -76,17 +60,13 @@ public class VendorMediaService {
 
     // ================= DELETE MEDIA =================
     public void deleteMedia(Long mediaId) {
-
         VendorMedia media = mediaRepository.findById(mediaId)
                 .orElseThrow(() -> new RuntimeException("Media not found"));
 
-        try {
-            // Convert public URL → filesystem path
-            String relativePath = media.getImageUrl().replace("/uploads/", "");
-            Path filePath = Paths.get(UPLOAD_BASE_DIR, relativePath);
-            Files.deleteIfExists(filePath);
-        } catch (IOException ignored) {}
+        // Optional: delete from Cloudinary (not required for free tier)
+        // You can extend CloudinaryService to delete if needed
 
+        // Delete record from DB
         mediaRepository.delete(media);
     }
 }
