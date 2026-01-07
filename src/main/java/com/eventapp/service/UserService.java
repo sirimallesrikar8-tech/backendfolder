@@ -37,6 +37,9 @@ public class UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    private static final String UPLOAD_BASE_DIR = "uploads";
+    private static final String PROFILE_DIR = "profile-pictures";
+
     // ================= REGISTER =================
     public LoginResponse register(RegisterRequest request) {
 
@@ -44,7 +47,6 @@ public class UserService {
             throw new RuntimeException("Email already exists");
         }
 
-        // ---------- Create User ----------
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
@@ -56,14 +58,7 @@ public class UserService {
 
         Long vendorId = null;
 
-        // ---------- Vendor Registration ----------
         if (request.getRole() == Role.VENDOR) {
-
-            if (request.getBusinessName() == null || request.getBusinessName().isBlank()
-                    || request.getCategory() == null || request.getCategory().isBlank()
-                    || request.getLocation() == null || request.getLocation().isBlank()) {
-                throw new RuntimeException("Vendor details are required");
-            }
 
             Vendor vendor = new Vendor();
             vendor.setUser(user);
@@ -74,12 +69,10 @@ public class UserService {
             vendor.setStatus(Status.PENDING);
 
             vendorRepository.save(vendor);
-
             vendorId = vendor.getId();
         }
 
-        // ---------- Admin Registration ----------
-        else if (request.getRole() == Role.ADMIN) {
+        if (request.getRole() == Role.ADMIN) {
             Admin admin = new Admin();
             admin.setUser(user);
             adminRepository.save(admin);
@@ -113,9 +106,7 @@ public class UserService {
 
         Long vendorId = null;
 
-        // ---------- Vendor Login ----------
         if (user.getRole() == Role.VENDOR) {
-
             Vendor vendor = vendorRepository.findByUser(user)
                     .orElseThrow(() -> new RuntimeException("Vendor profile not found"));
 
@@ -157,12 +148,8 @@ public class UserService {
         }
 
         try {
-            String baseDir = System.getProperty("user.dir");
-            Path uploadPath = Paths.get(baseDir, "uploads", "profile-pictures");
-
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
+            Path uploadPath = Paths.get(UPLOAD_BASE_DIR, PROFILE_DIR);
+            Files.createDirectories(uploadPath);
 
             String extension = contentType.equals("image/png") ? ".png" : ".jpg";
             String fileName = "user_" + userId + extension;
@@ -170,6 +157,7 @@ public class UserService {
             Path filePath = uploadPath.resolve(fileName);
             Files.write(filePath, file.getBytes());
 
+            // ✅ Public URL
             user.setProfilePicture("/uploads/profile-pictures/" + fileName);
             return userRepository.save(user);
 
@@ -184,7 +172,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    // ================= BUILD PROFILE RESPONSE (IMPORTANT) =================
+    // ================= BUILD PROFILE RESPONSE =================
     public LoginResponse buildUserProfileResponse(User user) {
 
         Long vendorId = null;

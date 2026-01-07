@@ -30,30 +30,26 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // Disable CSRF (REST API)
             .csrf(csrf -> csrf.disable())
 
-            // Enable CORS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-            // Stateless session
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
-            // Authorization rules
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        "/api/auth/**",     // auth APIs
-                        "/swagger-ui/**",   // swagger
+                        "/api/auth/**",
+                        "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**",
-                        "/error"            // ✅ IMPORTANT FIX
+                        "/uploads/**",     // ✅ 🔥 VERY IMPORTANT FIX
+                        "/error"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
 
-            // JWT filter
             .addFilterBefore(
                     jwtAuthenticationFilter,
                     UsernamePasswordAuthenticationFilter.class

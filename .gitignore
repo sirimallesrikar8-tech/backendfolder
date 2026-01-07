@@ -1,2 +1,9 @@
 src/main/resources/application.properties
 /target
+
+# Uploaded files (runtime)
+/uploads/
+/uploads/**
+
+# OS
+.DS_Store

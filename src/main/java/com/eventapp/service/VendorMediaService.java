@@ -7,7 +7,6 @@ import com.eventapp.repository.VendorRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,9 +20,9 @@ public class VendorMediaService {
     private final VendorMediaRepository mediaRepository;
     private final VendorRepository vendorRepository;
 
-    // ✅ Absolute safe upload directory
-    private static final String UPLOAD_DIR =
-            System.getProperty("user.dir") + "/uploads/vendor-media/";
+    // ✅ MUST match WebConfig: file:uploads/
+    private static final String UPLOAD_BASE_DIR = "uploads";
+    private static final String VENDOR_MEDIA_DIR = "vendor-media";
 
     public VendorMediaService(
             VendorMediaRepository mediaRepository,
@@ -33,7 +32,7 @@ public class VendorMediaService {
         this.vendorRepository = vendorRepository;
     }
 
-    // ---------------- UPLOAD IMAGE ----------------
+    // ================= UPLOAD IMAGE =================
     public VendorMedia uploadMedia(Long vendorId, MultipartFile file, String caption) {
 
         if (file == null || file.isEmpty()) {
@@ -44,42 +43,48 @@ public class VendorMediaService {
                 .orElseThrow(() -> new RuntimeException("Vendor not found"));
 
         try {
-            // ✅ Ensure directory exists
-            Path uploadPath = Paths.get(UPLOAD_DIR);
+            // uploads/vendor-media
+            Path uploadPath = Paths.get(UPLOAD_BASE_DIR, VENDOR_MEDIA_DIR);
             Files.createDirectories(uploadPath);
 
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path filePath = uploadPath.resolve(fileName);
+            String safeFileName =
+                    UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-            // ✅ Save file
+            Path filePath = uploadPath.resolve(safeFileName);
+
+            // Save file
             file.transferTo(filePath.toFile());
 
             VendorMedia media = new VendorMedia();
             media.setVendor(vendor);
-            media.setImageUrl("/uploads/vendor-media/" + fileName);
             media.setCaption(caption);
+
+            // ✅ PUBLIC URL (served by WebConfig)
+            media.setImageUrl("/uploads/vendor-media/" + safeFileName);
 
             return mediaRepository.save(media);
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload media", e);
+            throw new RuntimeException("Failed to upload vendor media", e);
         }
     }
 
-    // ---------------- GET VENDOR GALLERY ----------------
+    // ================= GET VENDOR GALLERY =================
     public List<VendorMedia> getVendorMedia(Long vendorId) {
         return mediaRepository.findByVendor_IdOrderByCreatedAtDesc(vendorId);
     }
 
-    // ---------------- DELETE MEDIA ----------------
+    // ================= DELETE MEDIA =================
     public void deleteMedia(Long mediaId) {
 
         VendorMedia media = mediaRepository.findById(mediaId)
                 .orElseThrow(() -> new RuntimeException("Media not found"));
 
         try {
-            String filePath = System.getProperty("user.dir") + media.getImageUrl();
-            Files.deleteIfExists(Paths.get(filePath));
+            // Convert public URL → filesystem path
+            String relativePath = media.getImageUrl().replace("/uploads/", "");
+            Path filePath = Paths.get(UPLOAD_BASE_DIR, relativePath);
+            Files.deleteIfExists(filePath);
         } catch (IOException ignored) {}
 
         mediaRepository.delete(media);
