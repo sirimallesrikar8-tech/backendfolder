@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,6 +19,8 @@ public class BookingController {
 
     @Autowired
     private BookingService bookingService;
+
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
     // -------------------------
     // User books a slot
@@ -101,7 +104,23 @@ public class BookingController {
         response.setSlotId(booking.getSlot().getId());
         response.setVendorName(booking.getSlot().getVendor().getBusinessName());
         response.setStatus(booking.getStatus());
-        // If you want, you can also add booking time here using LocalDateTime.now()
+
+        // -------------------------
+        // NEW FIELDS
+        // -------------------------
+        if (booking.getSlot() != null) {
+            response.setSlotDate(booking.getSlot().getDate());
+            if (booking.getSlot().getStartTime() != null) {
+                response.setSlotStartTime(booking.getSlot().getStartTime().toLocalTime().format(timeFormatter));
+            }
+            if (booking.getSlot().getEndTime() != null) {
+                response.setSlotEndTime(booking.getSlot().getEndTime().toLocalTime().format(timeFormatter));
+            }
+        }
+
+        // Set booking time if available, else current time
+        response.setBookingTime(java.time.LocalDateTime.now());
+
         return response;
     }
 }

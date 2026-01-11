@@ -1,6 +1,8 @@
 package com.eventapp.dto;
 
 import com.eventapp.entity.BookingStatus;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class BookingResponse {
@@ -9,11 +11,14 @@ public class BookingResponse {
     private Long userId;
     private String userName;
     private Long slotId;
-    private String vendorName;
+    private LocalDate slotDate;       // NEW
+    private String slotStartTime;     // NEW
+    private String slotEndTime;       // NEW
+    private String vendorName;        // NEW
     private BookingStatus status;
     private LocalDateTime bookingTime;
 
-    // GETTERS & SETTERS
+    // ---------- GETTERS & SETTERS ----------
 
     public Long getBookingId() {
         return bookingId;
@@ -45,6 +50,30 @@ public class BookingResponse {
 
     public void setSlotId(Long slotId) {
         this.slotId = slotId;
+    }
+
+    public LocalDate getSlotDate() {
+        return slotDate;
+    }
+
+    public void setSlotDate(LocalDate slotDate) {
+        this.slotDate = slotDate;
+    }
+
+    public String getSlotStartTime() {
+        return slotStartTime;
+    }
+
+    public void setSlotStartTime(String slotStartTime) {
+        this.slotStartTime = slotStartTime;
+    }
+
+    public String getSlotEndTime() {
+        return slotEndTime;
+    }
+
+    public void setSlotEndTime(String slotEndTime) {
+        this.slotEndTime = slotEndTime;
     }
 
     public String getVendorName() {

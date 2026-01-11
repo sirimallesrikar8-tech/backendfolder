@@ -51,11 +51,22 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
 
+        // ✅ NEW: Vendor KYC fields
+        user.setGstNumber(request.getGstNumber());
+        user.setPanOrTan(request.getPanOrTan());
+        user.setAadharNumber(request.getAadharNumber()); // optional
+
         userRepository.save(user);
 
         Long vendorId = null;
 
         if (request.getRole() == Role.VENDOR) {
+
+            // 🔒 Optional safety validation
+            if (request.getGstNumber() == null || request.getPanOrTan() == null) {
+                throw new RuntimeException("GST Number and PAN/TAN are required for Vendor registration");
+            }
+
             Vendor vendor = new Vendor();
             vendor.setUser(user);
             vendor.setBusinessName(request.getBusinessName());
@@ -83,7 +94,7 @@ public class UserService {
                 user.getEmail(),
                 user.getRole().toString(),
                 token,
-                user.getProfilePicture() // ✅ Use profilePicture field
+                user.getProfilePicture()
         );
     }
 
@@ -118,11 +129,11 @@ public class UserService {
                 user.getEmail(),
                 user.getRole().toString(),
                 token,
-                user.getProfilePicture() // ✅ Use profilePicture field
+                user.getProfilePicture()
         );
     }
 
-    // ================= PROFILE PICTURE UPLOAD (Cloudinary) =================
+    // ================= PROFILE PICTURE UPLOAD =================
     public User saveProfilePicture(Long userId, MultipartFile file) {
 
         User user = userRepository.findById(userId)
@@ -137,12 +148,8 @@ public class UserService {
         }
 
         try {
-            // Upload file to Cloudinary
             String imageUrl = cloudinaryService.uploadFile(file);
-
-            // Save Cloudinary URL
-            user.setProfilePicture(imageUrl); // ✅ Use profilePicture field
-
+            user.setProfilePicture(imageUrl);
             return userRepository.save(user);
 
         } catch (IOException e) {
@@ -172,8 +179,8 @@ public class UserService {
                 user.getName(),
                 user.getEmail(),
                 user.getRole().toString(),
-                null, // Token not needed here
-                user.getProfilePicture() // ✅ Use profilePicture field
+                null,
+                user.getProfilePicture()
         );
     }
 

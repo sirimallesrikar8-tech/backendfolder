@@ -2,6 +2,7 @@ package com.eventapp.repository;
 
 import com.eventapp.entity.Booking;
 import com.eventapp.entity.BookingStatus;
+import com.eventapp.entity.VendorSlot;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,4 +16,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     long countByUser_IdAndStatus(Long userId, BookingStatus status);
     long countBySlot_Vendor_IdAndStatus(Long vendorId, BookingStatus status);
+
+    // ----------------- NEW -----------------
+    List<Booking> findBySlot(VendorSlot slot);             // bookings by slot
 }

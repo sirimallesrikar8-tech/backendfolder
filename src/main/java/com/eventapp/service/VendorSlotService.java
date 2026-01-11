@@ -56,4 +56,31 @@ public class VendorSlotService {
                 SlotStatus.AVAILABLE
         );
     }
+
+    // ---------------- DELETE VENDOR SLOT ----------------
+    public void deleteVendorSlot(Long slotId) {
+        VendorSlot slot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new RuntimeException("Slot not found"));
+
+        slotRepository.delete(slot);
+    }
+
+    // ---------------- EDIT/UPDATE VENDOR SLOT ----------------
+    public VendorSlot updateVendorSlot(
+            Long slotId,
+            LocalDate date,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            SlotStatus status
+    ) {
+        VendorSlot slot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new RuntimeException("Slot not found"));
+
+        if (date != null) slot.setDate(date);
+        if (startTime != null) slot.setStartTime(startTime);
+        if (endTime != null) slot.setEndTime(endTime);
+        if (status != null) slot.setStatus(status);
+
+        return slotRepository.save(slot);
+    }
 }

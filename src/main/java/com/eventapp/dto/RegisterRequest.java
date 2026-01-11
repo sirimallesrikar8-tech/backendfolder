@@ -15,35 +15,109 @@ public class RegisterRequest {
     private String category;
     private String location;
 
+    // NEW: Vendor KYC fields
+    private String gstNumber;
+    private String panOrTan;
+    private String aadharNumber; // OPTIONAL
+
     // Optional profile picture (frontend can send URL or base64)
-    private String profilePicture; // NEW
+    private String profilePicture;
 
     // ---------- Getters & Setters ----------
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
+    public String getEmail() {
+        return email;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    public String getPhone() {
+        return phone;
+    }
 
-    public String getBusinessName() { return businessName; }
-    public void setBusinessName(String businessName) { this.businessName = businessName; }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getPassword() {
+        return password;
+    }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-    public String getProfilePicture() { return profilePicture; }
-    public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public String getBusinessName() {
+        return businessName;
+    }
+
+    public void setBusinessName(String businessName) {
+        this.businessName = businessName;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getGstNumber() {
+        return gstNumber;
+    }
+
+    public void setGstNumber(String gstNumber) {
+        this.gstNumber = gstNumber;
+    }
+
+    public String getPanOrTan() {
+        return panOrTan;
+    }
+
+    public void setPanOrTan(String panOrTan) {
+        this.panOrTan = panOrTan;
+    }
+
+    public String getAadharNumber() {
+        return aadharNumber;
+    }
+
+    public void setAadharNumber(String aadharNumber) {
+        this.aadharNumber = aadharNumber;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
 }

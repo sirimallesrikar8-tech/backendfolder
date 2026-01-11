@@ -41,16 +41,13 @@ public class VendorController {
             @RequestBody ReviewRequestDTO reviewRequest
     ) {
         try {
-            // Validate that the user exists
             if (!userRepository.existsById(reviewRequest.getUserId())) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("User not found with ID: " + reviewRequest.getUserId());
             }
 
-            // Save the review
             VendorReview savedReview = vendorReviewService.addReview(vendorId, reviewRequest);
 
-            // Map to DTO and return
             return ResponseEntity.ok(new VendorReviewDTO(
                     savedReview.getId(),
                     savedReview.getRating(),
@@ -130,21 +127,33 @@ public class VendorController {
     // ---------------- MAPPING METHODS ----------------
     private VendorResponseDTO mapToVendorResponse(Vendor vendor) {
         VendorResponseDTO dto = new VendorResponseDTO();
+
         dto.setId(vendor.getId());
         dto.setBusinessName(vendor.getBusinessName());
         dto.setCategory(vendor.getCategory());
-        dto.setPhone(vendor.getPhone());
         dto.setLocation(vendor.getLocation());
         dto.setProfileImage(vendor.getProfileImage());
         dto.setCoverImage(vendor.getCoverImage());
         dto.setStatus(vendor.getStatus().name());
 
+        // ✅ Map user-related fields
+        if (vendor.getUser() != null) {
+            dto.setName(vendor.getUser().getName());
+            dto.setEmail(vendor.getUser().getEmail());
+            dto.setPhone(vendor.getUser().getPhone());
+            dto.setGstNumber(vendor.getUser().getGstNumber());
+            dto.setPanOrTan(vendor.getUser().getPanOrTan());
+            dto.setAadharNumber(vendor.getUser().getAadharNumber());
+        }
+
+        // ✅ Map reviews if any
         if (vendor.getReviews() != null) {
             dto.setReviews(vendor.getReviews()
                     .stream()
                     .map(this::mapToReviewDTO)
                     .collect(Collectors.toList()));
         }
+
         return dto;
     }
 
