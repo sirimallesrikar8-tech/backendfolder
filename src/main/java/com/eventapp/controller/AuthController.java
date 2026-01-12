@@ -3,8 +3,9 @@ package com.eventapp.controller;
 import com.eventapp.dto.LoginRequest;
 import com.eventapp.dto.LoginResponse;
 import com.eventapp.dto.RegisterRequest;
+import com.eventapp.dto.VendorKYCRequest;
 import com.eventapp.dto.VendorResponseDTO;
-import com.eventapp.entity.User;
+import com.eventapp.entity.Vendor;
 import com.eventapp.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,6 +35,26 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(@RequestBody RegisterRequest request) {
         return ResponseEntity.ok(userService.register(request));
+    }
+
+    // ---------------- SUBMIT VENDOR KYC ----------------
+    @PostMapping("/vendor/kyc/{userId}")
+    @Operation(
+            summary = "Submit vendor KYC",
+            description = "Vendors submit GST, PAN/TAN, and optional Aadhar number",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "KYC submitted successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request"),
+                    @ApiResponse(responseCode = "404", description = "User not found")
+            }
+    )
+    public ResponseEntity<VendorResponseDTO> submitVendorKYC(
+            @PathVariable Long userId,
+            @RequestBody VendorKYCRequest request
+    ) {
+        Vendor vendor = userService.updateVendorKYC(userId, request);
+        VendorResponseDTO response = userService.mapToVendorResponse(vendor);
+        return ResponseEntity.ok(response);
     }
 
     // ---------------- UPLOAD PROFILE PICTURE ----------------

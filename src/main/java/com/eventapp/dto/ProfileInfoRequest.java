@@ -5,7 +5,7 @@ public class ProfileInfoRequest {
     private String gstNumber;
     private String panOrTan;
     private String aadharNumber;
-    private String profilePicture;
+    
 
     public String getGstNumber() {
         return gstNumber;
@@ -31,11 +31,5 @@ public class ProfileInfoRequest {
         this.aadharNumber = aadharNumber;
     }
 
-    public String getProfilePicture() {
-        return profilePicture;
-    }
-
-    public void setProfilePicture(String profilePicture) {
-        this.profilePicture = profilePicture;
-    }
+   
 }

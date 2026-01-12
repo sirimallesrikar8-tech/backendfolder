@@ -3,6 +3,7 @@ package com.eventapp.service;
 import com.eventapp.dto.LoginRequest;
 import com.eventapp.dto.LoginResponse;
 import com.eventapp.dto.RegisterRequest;
+import com.eventapp.dto.VendorKYCRequest;
 import com.eventapp.dto.VendorResponseDTO;
 import com.eventapp.dto.VendorReviewDTO;
 import com.eventapp.entity.*;
@@ -56,28 +57,20 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
 
-        // Vendor KYC fields
-        user.setGstNumber(request.getGstNumber());
-        user.setPanOrTan(request.getPanOrTan());
-        user.setAadharNumber(request.getAadharNumber());
-
+        // Save user first (without KYC)
         userRepository.save(user);
 
         Long vendorId = null;
 
-        // Vendor registration
+        // Vendor registration (basic info only)
         if (request.getRole() == Role.VENDOR) {
-            if (request.getGstNumber() == null || request.getPanOrTan() == null) {
-                throw new RuntimeException("GST Number and PAN/TAN are required for Vendor registration");
-            }
-
             Vendor vendor = new Vendor();
             vendor.setUser(user);
             vendor.setBusinessName(request.getBusinessName());
             vendor.setCategory(request.getCategory());
             vendor.setLocation(request.getLocation());
             vendor.setPhone(request.getPhone());
-            vendor.setStatus(Status.PENDING);
+            vendor.setStatus(Status.PENDING); // Wait for KYC approval
 
             vendorRepository.save(vendor);
             vendorId = vendor.getId();
@@ -166,36 +159,45 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Vendor user: return full vendor info
         if (user.getRole() == Role.VENDOR) {
             return vendorRepository.findByUser(user)
                     .map(this::mapToVendorResponse)
                     .orElseGet(() -> {
-                        // Vendor record missing, return minimal user info
                         VendorResponseDTO dto = new VendorResponseDTO();
                         dto.setId(user.getId());
                         dto.setName(user.getName());
                         dto.setEmail(user.getEmail());
                         dto.setPhone(user.getPhone());
-                        dto.setGstNumber(user.getGstNumber());
-                        dto.setPanOrTan(user.getPanOrTan());
-                        dto.setAadharNumber(user.getAadharNumber());
                         dto.setProfileImage(user.getProfilePicture());
                         return dto;
                     });
         }
 
-        // Non-vendor user (admin/customer)
         VendorResponseDTO dto = new VendorResponseDTO();
         dto.setId(user.getId());
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setPhone(user.getPhone());
-        dto.setGstNumber(user.getGstNumber());
-        dto.setPanOrTan(user.getPanOrTan());
-        dto.setAadharNumber(user.getAadharNumber());
         dto.setProfileImage(user.getProfilePicture());
         return dto;
+    }
+
+    // ================= VENDOR KYC =================
+    public Vendor updateVendorKYC(Long userId, VendorKYCRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getRole() != Role.VENDOR) {
+            throw new RuntimeException("Only vendors can submit KYC");
+        }
+
+        user.setGstNumber(request.getGstNumber());
+        user.setPanOrTan(request.getPanOrTan());
+        user.setAadharNumber(request.getAadharNumber());
+        userRepository.save(user);
+
+        return vendorRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Vendor profile not found"));
     }
 
     // ================= VENDOR MANAGEMENT =================
@@ -228,7 +230,7 @@ public class UserService {
     }
 
     // ================= MAPPING METHOD =================
-    private VendorResponseDTO mapToVendorResponse(Vendor vendor) {
+    public VendorResponseDTO mapToVendorResponse(Vendor vendor) {
         VendorResponseDTO dto = new VendorResponseDTO();
 
         dto.setId(vendor.getId());

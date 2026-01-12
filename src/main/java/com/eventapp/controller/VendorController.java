@@ -1,6 +1,7 @@
 package com.eventapp.controller;
 
 import com.eventapp.dto.ReviewRequestDTO;
+import com.eventapp.dto.VendorKYCRequest;
 import com.eventapp.dto.VendorResponseDTO;
 import com.eventapp.dto.VendorReviewDTO;
 import com.eventapp.entity.Status;
@@ -32,7 +33,7 @@ public class VendorController {
     private VendorReviewService vendorReviewService;
 
     @Autowired
-    private UserRepository userRepository; // ✅ For checking user existence
+    private UserRepository userRepository;
 
     // ---------------- POST A REVIEW FOR A VENDOR ----------------
     @PostMapping("/{vendorId}/reviews")
@@ -124,6 +125,23 @@ public class VendorController {
         );
     }
 
+    // ---------------- UPDATE VENDOR KYC ----------------
+    @PostMapping("/{userId}/kyc")
+    public ResponseEntity<?> updateVendorKYC(
+            @PathVariable Long userId,
+            @RequestBody VendorKYCRequest kycRequest
+    ) {
+        try {
+            Vendor vendor = userService.updateVendorKYC(userId, kycRequest);
+            return ResponseEntity.ok(mapToVendorResponse(vendor));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Something went wrong: " + ex.getMessage());
+        }
+    }
+
     // ---------------- MAPPING METHODS ----------------
     private VendorResponseDTO mapToVendorResponse(Vendor vendor) {
         VendorResponseDTO dto = new VendorResponseDTO();
@@ -136,12 +154,14 @@ public class VendorController {
         dto.setCoverImage(vendor.getCoverImage());
         dto.setStatus(vendor.getStatus().name());
 
-        // ✅ Map user-related fields
+        // ✅ Map user-related fields including KYC
         if (vendor.getUser() != null) {
             dto.setName(vendor.getUser().getName());
             dto.setEmail(vendor.getUser().getEmail());
             dto.setPhone(vendor.getUser().getPhone());
-            // Removed old KYC fields
+            dto.setGstNumber(vendor.getUser().getGstNumber());
+            dto.setPanOrTan(vendor.getUser().getPanOrTan());
+            dto.setAadharNumber(vendor.getUser().getAadharNumber());
         }
 
         // ✅ Map reviews if any
