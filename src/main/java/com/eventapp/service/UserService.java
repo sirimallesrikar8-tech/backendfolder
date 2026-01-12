@@ -3,6 +3,8 @@ package com.eventapp.service;
 import com.eventapp.dto.LoginRequest;
 import com.eventapp.dto.LoginResponse;
 import com.eventapp.dto.RegisterRequest;
+import com.eventapp.dto.VendorResponseDTO;
+import com.eventapp.dto.VendorReviewDTO;
 import com.eventapp.entity.*;
 import com.eventapp.repository.AdminRepository;
 import com.eventapp.repository.UserRepository;
@@ -15,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -40,10 +43,12 @@ public class UserService {
     // ================= REGISTER =================
     public LoginResponse register(RegisterRequest request) {
 
+        // Check if email already exists
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email already exists");
         }
 
+        // Create new User
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
@@ -51,18 +56,17 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
 
-        // ✅ NEW: Vendor KYC fields
+        // Vendor KYC fields
         user.setGstNumber(request.getGstNumber());
         user.setPanOrTan(request.getPanOrTan());
-        user.setAadharNumber(request.getAadharNumber()); // optional
+        user.setAadharNumber(request.getAadharNumber());
 
         userRepository.save(user);
 
         Long vendorId = null;
 
+        // Vendor registration
         if (request.getRole() == Role.VENDOR) {
-
-            // 🔒 Optional safety validation
             if (request.getGstNumber() == null || request.getPanOrTan() == null) {
                 throw new RuntimeException("GST Number and PAN/TAN are required for Vendor registration");
             }
@@ -79,12 +83,14 @@ public class UserService {
             vendorId = vendor.getId();
         }
 
+        // Admin registration
         if (request.getRole() == Role.ADMIN) {
             Admin admin = new Admin();
             admin.setUser(user);
             adminRepository.save(admin);
         }
 
+        // Generate JWT token
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().toString());
 
         return new LoginResponse(
@@ -100,7 +106,6 @@ public class UserService {
 
     // ================= LOGIN =================
     public LoginResponse login(LoginRequest request) {
-
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -151,37 +156,46 @@ public class UserService {
             String imageUrl = cloudinaryService.uploadFile(file);
             user.setProfilePicture(imageUrl);
             return userRepository.save(user);
-
         } catch (IOException e) {
             throw new RuntimeException("Failed to upload profile picture", e);
         }
     }
 
     // ================= USER PROFILE =================
-    public User getUserProfile(Long userId) {
-        return userRepository.findById(userId)
+    public VendorResponseDTO getUserProfile(Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-    }
 
-    // ================= BUILD PROFILE RESPONSE =================
-    public LoginResponse buildUserProfileResponse(User user) {
-
-        Long vendorId = null;
+        // Vendor user: return full vendor info
         if (user.getRole() == Role.VENDOR) {
-            vendorId = vendorRepository.findByUser(user)
-                    .map(Vendor::getId)
-                    .orElse(null);
+            return vendorRepository.findByUser(user)
+                    .map(this::mapToVendorResponse)
+                    .orElseGet(() -> {
+                        // Vendor record missing, return minimal user info
+                        VendorResponseDTO dto = new VendorResponseDTO();
+                        dto.setId(user.getId());
+                        dto.setName(user.getName());
+                        dto.setEmail(user.getEmail());
+                        dto.setPhone(user.getPhone());
+                        dto.setGstNumber(user.getGstNumber());
+                        dto.setPanOrTan(user.getPanOrTan());
+                        dto.setAadharNumber(user.getAadharNumber());
+                        dto.setProfileImage(user.getProfilePicture());
+                        return dto;
+                    });
         }
 
-        return new LoginResponse(
-                user.getId(),
-                vendorId,
-                user.getName(),
-                user.getEmail(),
-                user.getRole().toString(),
-                null,
-                user.getProfilePicture()
-        );
+        // Non-vendor user (admin/customer)
+        VendorResponseDTO dto = new VendorResponseDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
+        dto.setGstNumber(user.getGstNumber());
+        dto.setPanOrTan(user.getPanOrTan());
+        dto.setAadharNumber(user.getAadharNumber());
+        dto.setProfileImage(user.getProfilePicture());
+        return dto;
     }
 
     // ================= VENDOR MANAGEMENT =================
@@ -211,5 +225,44 @@ public class UserService {
                 .stream()
                 .filter(v -> v.getStatus() == status)
                 .toList();
+    }
+
+    // ================= MAPPING METHOD =================
+    private VendorResponseDTO mapToVendorResponse(Vendor vendor) {
+        VendorResponseDTO dto = new VendorResponseDTO();
+
+        dto.setId(vendor.getId());
+        dto.setBusinessName(vendor.getBusinessName());
+        dto.setCategory(vendor.getCategory());
+        dto.setLocation(vendor.getLocation());
+        dto.setProfileImage(vendor.getProfileImage());
+        dto.setCoverImage(vendor.getCoverImage());
+        dto.setStatus(vendor.getStatus().name());
+
+        if (vendor.getUser() != null) {
+            dto.setName(vendor.getUser().getName());
+            dto.setEmail(vendor.getUser().getEmail());
+            dto.setPhone(vendor.getUser().getPhone());
+            dto.setGstNumber(vendor.getUser().getGstNumber());
+            dto.setPanOrTan(vendor.getUser().getPanOrTan());
+            dto.setAadharNumber(vendor.getUser().getAadharNumber());
+        }
+
+        if (vendor.getReviews() != null) {
+            dto.setReviews(
+                    vendor.getReviews()
+                            .stream()
+                            .map(review -> new VendorReviewDTO(
+                                    review.getId(),
+                                    review.getRating(),
+                                    review.getReview(),
+                                    review.getUserId(),
+                                    review.getCreatedAt()
+                            ))
+                            .collect(Collectors.toList())
+            );
+        }
+
+        return dto;
     }
 }

@@ -141,9 +141,7 @@ public class VendorController {
             dto.setName(vendor.getUser().getName());
             dto.setEmail(vendor.getUser().getEmail());
             dto.setPhone(vendor.getUser().getPhone());
-            dto.setGstNumber(vendor.getUser().getGstNumber());
-            dto.setPanOrTan(vendor.getUser().getPanOrTan());
-            dto.setAadharNumber(vendor.getUser().getAadharNumber());
+            // Removed old KYC fields
         }
 
         // ✅ Map reviews if any
