@@ -5,7 +5,6 @@ public class ProfileInfoRequest {
     private String gstNumber;
     private String panOrTan;
     private String aadharNumber;
-    
 
     public String getGstNumber() {
         return gstNumber;
@@ -30,6 +29,4 @@ public class ProfileInfoRequest {
     public void setAadharNumber(String aadharNumber) {
         this.aadharNumber = aadharNumber;
     }
-
-   
 }

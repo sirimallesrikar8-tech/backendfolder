@@ -33,14 +33,12 @@ public class ProfileInfoService {
         profileInfo.setGstNumber(request.getGstNumber());
         profileInfo.setPanOrTan(request.getPanOrTan());
         profileInfo.setAadharNumber(request.getAadharNumber());
-        profileInfo.setProfilePicture(request.getProfilePicture());
 
         return profileInfoRepository.save(profileInfo);
     }
 
     // GET
     public ProfileInfo getProfileInfo(Long userId) {
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -50,7 +48,6 @@ public class ProfileInfoService {
 
     // DELETE
     public void deleteProfileInfo(Long userId) {
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
