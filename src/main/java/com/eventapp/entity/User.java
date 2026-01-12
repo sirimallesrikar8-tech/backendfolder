@@ -31,7 +31,8 @@ public class User {
     @Column(name = "profile_picture") // Store file path or URL
     private String profilePicture;
 
-    // ================= Vendor KYC Fields =================
+    // -------- Vendor KYC Fields --------
+
     @Column(name = "gst_number")
     private String gstNumber;
 
@@ -39,12 +40,14 @@ public class User {
     private String panOrTan;
 
     @Column(name = "aadhar_number")
-    private String aadharNumber; // optional
+    private String aadharNumber; // OPTIONAL
 
     // ---------- Constructors ----------
-    public User() {}
+    public User() {
+    }
 
     // ---------- Getters & Setters ----------
+
     public Long getId() {
         return id;
     }

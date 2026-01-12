@@ -3,9 +3,7 @@ package com.eventapp.controller;
 import com.eventapp.dto.LoginRequest;
 import com.eventapp.dto.LoginResponse;
 import com.eventapp.dto.RegisterRequest;
-import com.eventapp.dto.VendorKYCRequest;
-import com.eventapp.dto.VendorResponseDTO;
-import com.eventapp.entity.Vendor;
+import com.eventapp.entity.User;
 import com.eventapp.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -37,26 +35,6 @@ public class AuthController {
         return ResponseEntity.ok(userService.register(request));
     }
 
-    // ---------------- SUBMIT VENDOR KYC ----------------
-    @PostMapping("/vendor/kyc/{userId}")
-    @Operation(
-            summary = "Submit vendor KYC",
-            description = "Vendors submit GST, PAN/TAN, and optional Aadhar number",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "KYC submitted successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid request"),
-                    @ApiResponse(responseCode = "404", description = "User not found")
-            }
-    )
-    public ResponseEntity<VendorResponseDTO> submitVendorKYC(
-            @PathVariable Long userId,
-            @RequestBody VendorKYCRequest request
-    ) {
-        Vendor vendor = userService.updateVendorKYC(userId, request);
-        VendorResponseDTO response = userService.mapToVendorResponse(vendor);
-        return ResponseEntity.ok(response);
-    }
-
     // ---------------- UPLOAD PROFILE PICTURE ----------------
     @PostMapping(
             value = "/upload-profile-picture/{userId}",
@@ -71,7 +49,7 @@ public class AuthController {
                     @ApiResponse(responseCode = "404", description = "User not found")
             }
     )
-    public ResponseEntity<VendorResponseDTO> uploadProfilePicture(
+    public ResponseEntity<LoginResponse> uploadProfilePicture(
             @PathVariable Long userId,
             @Parameter(description = "Profile picture file", required = true)
             @RequestPart("file") MultipartFile file
@@ -81,19 +59,23 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        // Save profile picture
-        userService.saveProfilePicture(userId, file);
+        User updatedUser = userService.saveProfilePicture(userId, file);
 
-        // Get updated profile
-        VendorResponseDTO profile = userService.getUserProfile(userId);
+        // 🔹 vendorId will be fetched inside service
+        LoginResponse response = userService.buildUserProfileResponse(updatedUser);
 
-        return ResponseEntity.ok(profile);
+        return ResponseEntity.ok(response);
     }
 
     // ---------------- GET USER PROFILE ----------------
     @GetMapping("/profile/{userId}")
-    public ResponseEntity<VendorResponseDTO> getUserProfile(@PathVariable Long userId) {
-        VendorResponseDTO profile = userService.getUserProfile(userId);
-        return ResponseEntity.ok(profile);
+    public ResponseEntity<LoginResponse> getUserProfile(@PathVariable Long userId) {
+
+        User user = userService.getUserProfile(userId);
+
+        // 🔹 vendorId handled inside service
+        LoginResponse response = userService.buildUserProfileResponse(user);
+
+        return ResponseEntity.ok(response);
     }
 }
