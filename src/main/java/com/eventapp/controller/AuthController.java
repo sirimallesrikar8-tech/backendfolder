@@ -3,6 +3,7 @@ package com.eventapp.controller;
 import com.eventapp.dto.LoginRequest;
 import com.eventapp.dto.LoginResponse;
 import com.eventapp.dto.RegisterRequest;
+import com.eventapp.dto.VendorResponseDTO;
 import com.eventapp.entity.User;
 import com.eventapp.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,7 +50,7 @@ public class AuthController {
                     @ApiResponse(responseCode = "404", description = "User not found")
             }
     )
-    public ResponseEntity<LoginResponse> uploadProfilePicture(
+    public ResponseEntity<VendorResponseDTO> uploadProfilePicture(
             @PathVariable Long userId,
             @Parameter(description = "Profile picture file", required = true)
             @RequestPart("file") MultipartFile file
@@ -59,23 +60,19 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        User updatedUser = userService.saveProfilePicture(userId, file);
+        // Save profile picture
+        userService.saveProfilePicture(userId, file);
 
-        // 🔹 vendorId will be fetched inside service
-        LoginResponse response = userService.buildUserProfileResponse(updatedUser);
+        // Get updated profile
+        VendorResponseDTO profile = userService.getUserProfile(userId);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(profile);
     }
 
     // ---------------- GET USER PROFILE ----------------
     @GetMapping("/profile/{userId}")
-    public ResponseEntity<LoginResponse> getUserProfile(@PathVariable Long userId) {
-
-        User user = userService.getUserProfile(userId);
-
-        // 🔹 vendorId handled inside service
-        LoginResponse response = userService.buildUserProfileResponse(user);
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<VendorResponseDTO> getUserProfile(@PathVariable Long userId) {
+        VendorResponseDTO profile = userService.getUserProfile(userId);
+        return ResponseEntity.ok(profile);
     }
 }
