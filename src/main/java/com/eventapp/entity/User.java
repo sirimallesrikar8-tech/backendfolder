@@ -31,17 +31,6 @@ public class User {
     @Column(name = "profile_picture") // Store file path or URL
     private String profilePicture;
 
-    // -------- Vendor KYC Fields --------
-
-    @Column(name = "gst_number")
-    private String gstNumber;
-
-    @Column(name = "pan_or_tan")
-    private String panOrTan;
-
-    @Column(name = "aadhar_number")
-    private String aadharNumber; // OPTIONAL
-
     // ---------- Constructors ----------
     public User() {
     }
@@ -102,29 +91,5 @@ public class User {
 
     public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
-    }
-
-    public String getGstNumber() {
-        return gstNumber;
-    }
-
-    public void setGstNumber(String gstNumber) {
-        this.gstNumber = gstNumber;
-    }
-
-    public String getPanOrTan() {
-        return panOrTan;
-    }
-
-    public void setPanOrTan(String panOrTan) {
-        this.panOrTan = panOrTan;
-    }
-
-    public String getAadharNumber() {
-        return aadharNumber;
-    }
-
-    public void setAadharNumber(String aadharNumber) {
-        this.aadharNumber = aadharNumber;
     }
 }
