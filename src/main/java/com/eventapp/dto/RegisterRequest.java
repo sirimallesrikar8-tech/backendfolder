@@ -10,18 +10,10 @@ public class RegisterRequest {
     private String password;
     private Role role; // USER / VENDOR / ADMIN
 
-    // Vendor-only fields
+    // Vendor-only fields (optional)
     private String businessName;
     private String category;
     private String location;
-
-    // NEW: Vendor KYC fields
-    private String gstNumber;
-    private String panOrTan;
-    private String aadharNumber; // OPTIONAL
-
-    // Optional profile picture (frontend can send URL or base64)
-    private String profilePicture;
 
     // ---------- Getters & Setters ----------
 
@@ -36,7 +28,7 @@ public class RegisterRequest {
     public String getEmail() {
         return email;
     }
-
+    
     public void setEmail(String email) {
         this.email = email;
     }
@@ -44,7 +36,7 @@ public class RegisterRequest {
     public String getPhone() {
         return phone;
     }
-
+    
     public void setPhone(String phone) {
         this.phone = phone;
     }
@@ -52,7 +44,7 @@ public class RegisterRequest {
     public String getPassword() {
         return password;
     }
-
+    
     public void setPassword(String password) {
         this.password = password;
     }
@@ -87,37 +79,5 @@ public class RegisterRequest {
 
     public void setLocation(String location) {
         this.location = location;
-    }
-
-    public String getGstNumber() {
-        return gstNumber;
-    }
-
-    public void setGstNumber(String gstNumber) {
-        this.gstNumber = gstNumber;
-    }
-
-    public String getPanOrTan() {
-        return panOrTan;
-    }
-
-    public void setPanOrTan(String panOrTan) {
-        this.panOrTan = panOrTan;
-    }
-
-    public String getAadharNumber() {
-        return aadharNumber;
-    }
-
-    public void setAadharNumber(String aadharNumber) {
-        this.aadharNumber = aadharNumber;
-    }
-
-    public String getProfilePicture() {
-        return profilePicture;
-    }
-
-    public void setProfilePicture(String profilePicture) {
-        this.profilePicture = profilePicture;
     }
 }

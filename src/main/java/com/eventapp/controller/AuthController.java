@@ -32,6 +32,7 @@ public class AuthController {
     // ---------------- REGISTER ----------------
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(@RequestBody RegisterRequest request) {
+        // Now supports clean JSON for USER, ADMIN, and VENDOR
         return ResponseEntity.ok(userService.register(request));
     }
 
@@ -61,7 +62,7 @@ public class AuthController {
 
         User updatedUser = userService.saveProfilePicture(userId, file);
 
-        // 🔹 vendorId will be fetched inside service
+        // Build response without profilePicture in registration
         LoginResponse response = userService.buildUserProfileResponse(updatedUser);
 
         return ResponseEntity.ok(response);
@@ -73,7 +74,7 @@ public class AuthController {
 
         User user = userService.getUserProfile(userId);
 
-        // 🔹 vendorId handled inside service
+        // Build response without KYC fields
         LoginResponse response = userService.buildUserProfileResponse(user);
 
         return ResponseEntity.ok(response);

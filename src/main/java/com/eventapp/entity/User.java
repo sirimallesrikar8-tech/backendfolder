@@ -20,7 +20,7 @@ public class User {
     @Column(nullable = false)
     private String phone;
 
-    @JsonIgnore // 🔒 Hide password in JSON responses
+    @JsonIgnore // Hide password in JSON responses
     @Column(nullable = false)
     private String password;
 
@@ -28,11 +28,17 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    @Column(name = "profile_picture") // Store file path or URL
-    private String profilePicture;
+    // -------- Optional Vendor Fields --------
+    @Column(name = "business_name")
+    private String businessName;
 
-    // -------- Vendor KYC Fields --------
+    @Column(name = "category")
+    private String category;
 
+    @Column(name = "location")
+    private String location;
+
+    // -------- Vendor GST / PAN / Aadhar Details --------
     @Column(name = "gst_number")
     private String gstNumber;
 
@@ -40,91 +46,45 @@ public class User {
     private String panOrTan;
 
     @Column(name = "aadhar_number")
-    private String aadharNumber; // OPTIONAL
+    private String aadharNumber;
 
     // ---------- Constructors ----------
-    public User() {
-    }
+    public User() {}
 
     // ---------- Getters & Setters ----------
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Long getId() {
-        return id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getName() {
-        return name;
-    }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public String getEmail() {
-        return email;
-    }
-    
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
 
-    public String getPhone() {
-        return phone;
-    }
-    
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+    public String getBusinessName() { return businessName; }
+    public void setBusinessName(String businessName) { this.businessName = businessName; }
 
-    public String getPassword() {
-        return password;
-    }
-    
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public Role getRole() {
-        return role;
-    }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public void setRole(Role role) {
-        this.role = role;
-    }
+    public String getGstNumber() { return gstNumber; }
+    public void setGstNumber(String gstNumber) { this.gstNumber = gstNumber; }
 
-    public String getProfilePicture() {
-        return profilePicture;
-    }
+    public String getPanOrTan() { return panOrTan; }
+    public void setPanOrTan(String panOrTan) { this.panOrTan = panOrTan; }
 
-    public void setProfilePicture(String profilePicture) {
-        this.profilePicture = profilePicture;
-    }
-
-    public String getGstNumber() {
-        return gstNumber;
-    }
-
-    public void setGstNumber(String gstNumber) {
-        this.gstNumber = gstNumber;
-    }
-
-    public String getPanOrTan() {
-        return panOrTan;
-    }
-
-    public void setPanOrTan(String panOrTan) {
-        this.panOrTan = panOrTan;
-    }
-
-    public String getAadharNumber() {
-        return aadharNumber;
-    }
-
-    public void setAadharNumber(String aadharNumber) {
-        this.aadharNumber = aadharNumber;
-    }
+    public String getAadharNumber() { return aadharNumber; }
+    public void setAadharNumber(String aadharNumber) { this.aadharNumber = aadharNumber; }
 }

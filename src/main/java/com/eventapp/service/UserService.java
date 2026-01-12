@@ -51,22 +51,18 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
 
-        // ✅ NEW: Vendor KYC fields
-        user.setGstNumber(request.getGstNumber());
-        user.setPanOrTan(request.getPanOrTan());
-        user.setAadharNumber(request.getAadharNumber()); // optional
+        // ✅ Vendor fields only if role is VENDOR
+        if (request.getRole() == Role.VENDOR) {
+            user.setBusinessName(request.getBusinessName());
+            user.setCategory(request.getCategory());
+            user.setLocation(request.getLocation());
+        }
 
         userRepository.save(user);
 
         Long vendorId = null;
 
         if (request.getRole() == Role.VENDOR) {
-
-            // 🔒 Optional safety validation
-            if (request.getGstNumber() == null || request.getPanOrTan() == null) {
-                throw new RuntimeException("GST Number and PAN/TAN are required for Vendor registration");
-            }
-
             Vendor vendor = new Vendor();
             vendor.setUser(user);
             vendor.setBusinessName(request.getBusinessName());
@@ -94,7 +90,7 @@ public class UserService {
                 user.getEmail(),
                 user.getRole().toString(),
                 token,
-                user.getProfilePicture()
+                null // profilePicture removed from register response
         );
     }
 
@@ -129,7 +125,7 @@ public class UserService {
                 user.getEmail(),
                 user.getRole().toString(),
                 token,
-                user.getProfilePicture()
+                null
         );
     }
 
@@ -149,7 +145,7 @@ public class UserService {
 
         try {
             String imageUrl = cloudinaryService.uploadFile(file);
-            user.setProfilePicture(imageUrl);
+            // Optional: keep profilePicture in User entity if you want
             return userRepository.save(user);
 
         } catch (IOException e) {
@@ -180,7 +176,7 @@ public class UserService {
                 user.getEmail(),
                 user.getRole().toString(),
                 null,
-                user.getProfilePicture()
+                null
         );
     }
 

@@ -13,6 +13,7 @@ import com.eventapp.service.VendorReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,7 +33,7 @@ public class VendorController {
     private VendorReviewService vendorReviewService;
 
     @Autowired
-    private UserRepository userRepository; // ✅ For checking user existence
+    private UserRepository userRepository;
 
     // ---------------- POST A REVIEW FOR A VENDOR ----------------
     @PostMapping("/{vendorId}/reviews")
@@ -68,6 +69,7 @@ public class VendorController {
 
     // ---------------- GET SINGLE VENDOR ----------------
     @GetMapping("/{vendorId}")
+    @Transactional
     public ResponseEntity<VendorResponseDTO> getVendorById(@PathVariable Long vendorId) {
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new RuntimeException("Vendor not found"));
@@ -132,21 +134,16 @@ public class VendorController {
         dto.setBusinessName(vendor.getBusinessName());
         dto.setCategory(vendor.getCategory());
         dto.setLocation(vendor.getLocation());
-        dto.setProfileImage(vendor.getProfileImage());
-        dto.setCoverImage(vendor.getCoverImage());
         dto.setStatus(vendor.getStatus().name());
 
-        // ✅ Map user-related fields
+        // Map user-related fields
         if (vendor.getUser() != null) {
             dto.setName(vendor.getUser().getName());
             dto.setEmail(vendor.getUser().getEmail());
             dto.setPhone(vendor.getUser().getPhone());
-            dto.setGstNumber(vendor.getUser().getGstNumber());
-            dto.setPanOrTan(vendor.getUser().getPanOrTan());
-            dto.setAadharNumber(vendor.getUser().getAadharNumber());
         }
 
-        // ✅ Map reviews if any
+        // Map reviews if any
         if (vendor.getReviews() != null) {
             dto.setReviews(vendor.getReviews()
                     .stream()
