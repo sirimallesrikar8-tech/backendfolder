@@ -20,7 +20,7 @@ public class User {
     @Column(nullable = false)
     private String phone;
 
-    @JsonIgnore // Hide password in JSON responses
+    @JsonIgnore // 🔒 Hide password from API responses
     @Column(nullable = false)
     private String password;
 
@@ -28,7 +28,7 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    // -------- Optional Vendor Fields --------
+    // -------- Vendor Basic Details --------
     @Column(name = "business_name")
     private String businessName;
 
@@ -38,7 +38,7 @@ public class User {
     @Column(name = "location")
     private String location;
 
-    // -------- Vendor GST / PAN / Aadhar Details --------
+    // -------- Vendor KYC Details --------
     @Column(name = "gst_number")
     private String gstNumber;
 
@@ -48,43 +48,115 @@ public class User {
     @Column(name = "aadhar_number")
     private String aadharNumber;
 
+    // -------- Profile Picture --------
+    @Column(name = "profile_picture")
+    private String profilePicture;
+
     // ---------- Constructors ----------
     public User() {}
 
     // ---------- Getters & Setters ----------
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getName() {
+        return name;
+    }
 
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public String getEmail() {
+        return email;
+    }
 
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public String getBusinessName() { return businessName; }
-    public void setBusinessName(String businessName) { this.businessName = businessName; }
+    public String getPhone() {
+        return phone;
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public String getPassword() {
+        return password;
+    }
 
-    public String getGstNumber() { return gstNumber; }
-    public void setGstNumber(String gstNumber) { this.gstNumber = gstNumber; }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-    public String getPanOrTan() { return panOrTan; }
-    public void setPanOrTan(String panOrTan) { this.panOrTan = panOrTan; }
+    public Role getRole() {
+        return role;
+    }
 
-    public String getAadharNumber() { return aadharNumber; }
-    public void setAadharNumber(String aadharNumber) { this.aadharNumber = aadharNumber; }
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public String getBusinessName() {
+        return businessName;
+    }
+
+    public void setBusinessName(String businessName) {
+        this.businessName = businessName;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getGstNumber() {
+        return gstNumber;
+    }
+
+    public void setGstNumber(String gstNumber) {
+        this.gstNumber = gstNumber;
+    }
+
+    public String getPanOrTan() {
+        return panOrTan;
+    }
+
+    public void setPanOrTan(String panOrTan) {
+        this.panOrTan = panOrTan;
+    }
+
+    public String getAadharNumber() {
+        return aadharNumber;
+    }
+
+    public void setAadharNumber(String aadharNumber) {
+        this.aadharNumber = aadharNumber;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
 }

@@ -51,7 +51,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
 
-        // ✅ Vendor fields only if role is VENDOR
+        // Vendor basic details
         if (request.getRole() == Role.VENDOR) {
             user.setBusinessName(request.getBusinessName());
             user.setCategory(request.getCategory());
@@ -70,7 +70,6 @@ public class UserService {
             vendor.setLocation(request.getLocation());
             vendor.setPhone(request.getPhone());
             vendor.setStatus(Status.PENDING);
-
             vendorRepository.save(vendor);
             vendorId = vendor.getId();
         }
@@ -81,7 +80,10 @@ public class UserService {
             adminRepository.save(admin);
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().toString());
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole().toString()
+        );
 
         return new LoginResponse(
                 user.getId(),
@@ -90,7 +92,7 @@ public class UserService {
                 user.getEmail(),
                 user.getRole().toString(),
                 token,
-                null // profilePicture removed from register response
+                null
         );
     }
 
@@ -116,7 +118,10 @@ public class UserService {
             vendorId = vendor.getId();
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().toString());
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole().toString()
+        );
 
         return new LoginResponse(
                 user.getId(),
@@ -125,7 +130,7 @@ public class UserService {
                 user.getEmail(),
                 user.getRole().toString(),
                 token,
-                null
+                user.getProfilePicture()
         );
     }
 
@@ -144,8 +149,12 @@ public class UserService {
         }
 
         try {
+            // Upload to Cloudinary
             String imageUrl = cloudinaryService.uploadFile(file);
-            // Optional: keep profilePicture in User entity if you want
+
+            // ✅ SAVE IMAGE URL IN USER
+            user.setProfilePicture(imageUrl);
+
             return userRepository.save(user);
 
         } catch (IOException e) {
@@ -175,8 +184,8 @@ public class UserService {
                 user.getName(),
                 user.getEmail(),
                 user.getRole().toString(),
-                null,
-                null
+                null, // token not required here
+                user.getProfilePicture() // ✅ FIXED
         );
     }
 

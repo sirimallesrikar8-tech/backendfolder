@@ -4,8 +4,10 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
@@ -13,21 +15,32 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // 🔐 SECRET KEY
-    // IMPORTANT:
-    // 1. Must be LONG (at least 32 characters)
-    // 2. Must NEVER change once tokens are issued
-    private static final String SECRET =
-            "eventapp-super-secure-secret-key-1234567890";
+    // ===============================
+    // JWT CONFIG FROM application.properties
+    // ===============================
+    @Value("${jwt.secret}")
+    private String secret;
 
-    // 🔑 Signing key created from secret
-    private final Key key = Keys.hmacShaKeyFor(
-            SECRET.getBytes(StandardCharsets.UTF_8)
-    );
+    @Value("${jwt.expiration}")
+    private long expirationTime;
 
-    // ⏰ Token validity: 10 hours
-    private static final long EXPIRATION_TIME =
-            1000 * 60 * 60 * 10;
+    private Key key;
+
+    // ===============================
+    // INITIALIZE SIGNING KEY
+    // ===============================
+    @PostConstruct
+    public void init() {
+        if (secret == null || secret.length() < 32) {
+            throw new RuntimeException(
+                    "JWT secret must be at least 32 characters long"
+            );
+        }
+
+        this.key = Keys.hmacShaKeyFor(
+                secret.getBytes(StandardCharsets.UTF_8)
+        );
+    }
 
     // =====================================================
     // ✅ GENERATE TOKEN
@@ -35,11 +48,11 @@ public class JwtUtil {
     public String generateToken(String email, String role) {
 
         return Jwts.builder()
-                .setSubject(email)              // username/email
+                .setSubject(email)              // user email
                 .claim("role", role)            // ADMIN / USER / VENDOR
-                .setIssuedAt(new Date())        // now
+                .setIssuedAt(new Date())
                 .setExpiration(
-                        new Date(System.currentTimeMillis() + EXPIRATION_TIME)
+                        new Date(System.currentTimeMillis() + expirationTime)
                 )
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -57,7 +70,7 @@ public class JwtUtil {
     }
 
     // =====================================================
-    // ✅ EXTRACT EMAIL (SUBJECT)
+    // ✅ EXTRACT EMAIL
     // =====================================================
     public String extractEmail(String token) {
         return extractAllClaims(token).getSubject();
@@ -83,7 +96,7 @@ public class JwtUtil {
     // ✅ VALIDATE TOKEN
     // =====================================================
     public boolean validateToken(String token, String email) {
-        String tokenEmail = extractEmail(token);
-        return tokenEmail.equals(email) && !isTokenExpired(token);
+        return extractEmail(token).equals(email)
+                && !isTokenExpired(token);
     }
 }
