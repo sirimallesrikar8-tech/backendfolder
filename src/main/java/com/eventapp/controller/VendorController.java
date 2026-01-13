@@ -95,8 +95,17 @@ public class VendorController {
     // ---------------- GET VENDORS BY STATUS ----------------
     @GetMapping("/status/{status}")
     public ResponseEntity<List<VendorResponseDTO>> getVendorsByStatus(@PathVariable String status) {
-        Status st = Status.valueOf(status.toUpperCase());
+
+        Status st;
+        try {
+            st = Status.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(List.of());
+        }
+
         List<Vendor> vendors = userService.getVendorsByStatus(st);
+
         return ResponseEntity.ok(
                 vendors.stream()
                         .map(this::mapToVendorResponse)
@@ -119,7 +128,7 @@ public class VendorController {
     @GetMapping("/location")
     public ResponseEntity<List<VendorResponseDTO>> getVendorsByLocation(@RequestParam String location) {
         return ResponseEntity.ok(
-                vendorRepository.findApprovedByLocation(location)
+                vendorRepository.findApprovedByLocation(location, Status.APPROVED)
                         .stream()
                         .map(this::mapToVendorResponse)
                         .collect(Collectors.toList())
@@ -136,19 +145,19 @@ public class VendorController {
         dto.setLocation(vendor.getLocation());
         dto.setStatus(vendor.getStatus().name());
 
-        // Map user-related fields
         if (vendor.getUser() != null) {
             dto.setName(vendor.getUser().getName());
             dto.setEmail(vendor.getUser().getEmail());
             dto.setPhone(vendor.getUser().getPhone());
         }
 
-        // Map reviews if any
         if (vendor.getReviews() != null) {
-            dto.setReviews(vendor.getReviews()
-                    .stream()
-                    .map(this::mapToReviewDTO)
-                    .collect(Collectors.toList()));
+            dto.setReviews(
+                    vendor.getReviews()
+                            .stream()
+                            .map(this::mapToReviewDTO)
+                            .collect(Collectors.toList())
+            );
         }
 
         return dto;

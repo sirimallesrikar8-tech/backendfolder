@@ -22,6 +22,10 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
     List<Vendor> searchByBusinessName(@Param("name") String name);
 
     // ---------------- Get approved vendors by location ----------------
-    @Query("SELECT v FROM Vendor v WHERE v.location = :location AND v.status = com.eventapp.entity.Status.APPROVED")
-    List<Vendor> findApprovedByLocation(@Param("location") String location);
+    // ✅ FIX: enum passed safely as parameter (prevents 500)
+    @Query("SELECT v FROM Vendor v WHERE v.location = :location AND v.status = :status")
+    List<Vendor> findApprovedByLocation(
+            @Param("location") String location,
+            @Param("status") Status status
+    );
 }
