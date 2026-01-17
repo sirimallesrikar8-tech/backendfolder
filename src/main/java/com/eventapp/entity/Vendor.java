@@ -1,7 +1,6 @@
 package com.eventapp.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -14,8 +13,8 @@ public class Vendor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 🔥 FIX 1: Ignore back-reference loop
-    @OneToOne
+    // Prevent infinite loop + lazy loading crash
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
@@ -23,13 +22,8 @@ public class Vendor {
     @Column(nullable = false)
     private String businessName;
 
-    @Column
     private String category;
-
-    @Column
     private String phone;
-
-    @Column
     private String location;
 
     @Column(name = "profile_image")
@@ -42,60 +36,133 @@ public class Vendor {
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
-    // ---------------- RELATIONSHIPS ----------------
+    // ---------- RELATIONSHIPS (IGNORE ALL IN JSON) ----------
 
-    // 🔥 FIX 2: Prevent slot recursion
-    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "vendor",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     @JsonIgnore
     private List<VendorSlot> slots;
 
-    // 🔥 FIX 3: Prevent media recursion
-    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "vendor",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     @JsonIgnore
     private List<VendorMedia> mediaList;
 
-    // ✅ Reviews already fixed
-    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @OneToMany(
+            mappedBy = "vendor",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @JsonIgnore
     private List<VendorReview> reviews;
 
+    // ---------- CONSTRUCTORS ----------
     public Vendor() {}
 
-    // ---------------- GETTERS & SETTERS ----------------
+    // ---------- GETTERS & SETTERS ----------
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getBusinessName() { return businessName; }
-    public void setBusinessName(String businessName) { this.businessName = businessName; }
+    public User getUser() {
+        return user;
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public void setUser(User user) {
+        this.user = user;
+    }
 
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
+    public String getBusinessName() {
+        return businessName;
+    }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public void setBusinessName(String businessName) {
+        this.businessName = businessName;
+    }
 
-    public String getProfileImage() { return profileImage; }
-    public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
+    public String getCategory() {
+        return category;
+    }
 
-    public String getCoverImage() { return coverImage; }
-    public void setCoverImage(String coverImage) { this.coverImage = coverImage; }
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
-    public Status getStatus() { return status; }
-    public void setStatus(Status status) { this.status = status; }
+    public String getPhone() {
+        return phone;
+    }
 
-    public List<VendorSlot> getSlots() { return slots; }
-    public void setSlots(List<VendorSlot> slots) { this.slots = slots; }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
-    public List<VendorMedia> getMediaList() { return mediaList; }
-    public void setMediaList(List<VendorMedia> mediaList) { this.mediaList = mediaList; }
+    public String getLocation() {
+        return location;
+    }
 
-    public List<VendorReview> getReviews() { return reviews; }
-    public void setReviews(List<VendorReview> reviews) { this.reviews = reviews; }
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    public String getCoverImage() {
+        return coverImage;
+    }
+
+    public void setCoverImage(String coverImage) {
+        this.coverImage = coverImage;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public List<VendorSlot> getSlots() {
+        return slots;
+    }
+
+    public void setSlots(List<VendorSlot> slots) {
+        this.slots = slots;
+    }
+
+    public List<VendorMedia> getMediaList() {
+        return mediaList;
+    }
+
+    public void setMediaList(List<VendorMedia> mediaList) {
+        this.mediaList = mediaList;
+    }
+
+    public List<VendorReview> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<VendorReview> reviews) {
+        this.reviews = reviews;
+    }
 }
