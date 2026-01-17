@@ -13,7 +13,6 @@ import java.util.Optional;
 public interface VendorRepository extends JpaRepository<Vendor, Long> {
 
     // ================= BASIC =================
-
     Optional<Vendor> findByUser(User user);
 
     List<Vendor> findByStatus(Status status);
@@ -36,7 +35,7 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
         SELECT v
         FROM Vendor v
         WHERE v.location IS NOT NULL
-          AND LOWER(v.location) = LOWER(:location)
+          AND LOWER(v.location) LIKE LOWER(CONCAT('%', :location, '%'))
           AND v.status = :status
     """)
     List<Vendor> findApprovedVendorsByLocation(

@@ -3,7 +3,6 @@ package com.eventapp.controller;
 import com.eventapp.dto.ReviewRequestDTO;
 import com.eventapp.dto.VendorResponseDTO;
 import com.eventapp.dto.VendorReviewDTO;
-import com.eventapp.entity.Status;
 import com.eventapp.entity.Vendor;
 import com.eventapp.entity.VendorReview;
 import com.eventapp.repository.UserRepository;
@@ -31,36 +30,6 @@ public class VendorController {
     @Autowired
     private UserRepository userRepository;
 
-    // ---------------- SEARCH VENDORS BY BUSINESS NAME ----------------
-    @GetMapping("/search")
-    public ResponseEntity<List<VendorResponseDTO>> searchVendors(
-            @RequestParam String name
-    ) {
-        List<Vendor> vendors =
-                vendorRepository.searchApprovedVendorsByName(name, Status.APPROVED);
-
-        return ResponseEntity.ok(
-                vendors.stream()
-                        .map(this::mapToVendorResponse)
-                        .collect(Collectors.toList())
-        );
-    }
-
-    // ---------------- GET VENDORS BY LOCATION ----------------
-    @GetMapping("/location")
-    public ResponseEntity<List<VendorResponseDTO>> getVendorsByLocation(
-            @RequestParam String location
-    ) {
-        List<Vendor> vendors =
-                vendorRepository.findApprovedVendorsByLocation(location, Status.APPROVED);
-
-        return ResponseEntity.ok(
-                vendors.stream()
-                        .map(this::mapToVendorResponse)
-                        .collect(Collectors.toList())
-        );
-    }
-
     // ---------------- POST A REVIEW FOR A VENDOR ----------------
     @PostMapping("/{vendorId}/reviews")
     public ResponseEntity<?> addReview(
@@ -82,6 +51,7 @@ public class VendorController {
         } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
         } catch (Exception ex) {
+            ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Something went wrong");
         }
