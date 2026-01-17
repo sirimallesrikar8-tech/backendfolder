@@ -16,28 +16,25 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
 
     Optional<Vendor> findByUser(User user);
 
-    // ✅ REQUIRED for /api/admin/vendor/status/{status}
     List<Vendor> findByStatus(Status status);
 
-    // ================= FILTERING =================
-
-    List<Vendor> findByLocationAndStatus(String location, Status status);
-
-    // ================= SEARCH =================
+    // ================= SEARCH (NULL SAFE + CASE INSENSITIVE) =================
 
     @Query("""
         SELECT v
         FROM Vendor v
-        WHERE LOWER(v.businessName) LIKE LOWER(CONCAT('%', :name, '%'))
+        WHERE v.businessName IS NOT NULL
+          AND LOWER(v.businessName) LIKE LOWER(CONCAT('%', :name, '%'))
     """)
     List<Vendor> searchByBusinessName(@Param("name") String name);
 
-    // ================= APPROVED VENDORS =================
+    // ================= LOCATION (NULL SAFE + CASE INSENSITIVE) =================
 
     @Query("""
         SELECT v
         FROM Vendor v
-        WHERE v.location = :location
+        WHERE v.location IS NOT NULL
+          AND LOWER(v.location) = LOWER(:location)
           AND v.status = :status
     """)
     List<Vendor> findApprovedByLocation(
