@@ -51,7 +51,6 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
 
-        // Vendor basic details
         if (request.getRole() == Role.VENDOR) {
             user.setBusinessName(request.getBusinessName());
             user.setCategory(request.getCategory());
@@ -107,6 +106,7 @@ public class UserService {
         }
 
         Long vendorId = null;
+
         if (user.getRole() == Role.VENDOR) {
             Vendor vendor = vendorRepository.findByUser(user)
                     .orElseThrow(() -> new RuntimeException("Vendor profile not found"));
@@ -149,12 +149,8 @@ public class UserService {
         }
 
         try {
-            // Upload to Cloudinary
             String imageUrl = cloudinaryService.uploadFile(file);
-
-            // ✅ SAVE IMAGE URL IN USER
             user.setProfilePicture(imageUrl);
-
             return userRepository.save(user);
 
         } catch (IOException e) {
@@ -172,6 +168,7 @@ public class UserService {
     public LoginResponse buildUserProfileResponse(User user) {
 
         Long vendorId = null;
+
         if (user.getRole() == Role.VENDOR) {
             vendorId = vendorRepository.findByUser(user)
                     .map(Vendor::getId)
@@ -184,8 +181,8 @@ public class UserService {
                 user.getName(),
                 user.getEmail(),
                 user.getRole().toString(),
-                null, // token not required here
-                user.getProfilePicture() // ✅ FIXED
+                null,
+                user.getProfilePicture()
         );
     }
 
@@ -211,10 +208,8 @@ public class UserService {
         return vendorRepository.save(vendor);
     }
 
+    // ✅ FIXED: SAFE & FAST
     public List<Vendor> getVendorsByStatus(Status status) {
-        return vendorRepository.findAll()
-                .stream()
-                .filter(v -> v.getStatus() == status)
-                .toList();
+        return vendorRepository.findByStatus(status);
     }
 }

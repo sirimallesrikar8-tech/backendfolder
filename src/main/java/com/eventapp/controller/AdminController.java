@@ -4,7 +4,9 @@ import com.eventapp.entity.Status;
 import com.eventapp.entity.Vendor;
 import com.eventapp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -29,13 +31,32 @@ public class AdminController {
 
     // ---------------- UPDATE VENDOR STATUS ----------------
     @PatchMapping("/{vendorId}/status")
-    public Vendor updateVendorStatus(@PathVariable Long vendorId, @RequestParam Status status) {
-        return userService.updateVendorStatus(vendorId, status);
+    public Vendor updateVendorStatus(
+            @PathVariable Long vendorId,
+            @RequestParam String status
+    ) {
+        try {
+            Status enumStatus = Status.valueOf(status.toUpperCase());
+            return userService.updateVendorStatus(vendorId, enumStatus);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Invalid status: " + status
+            );
+        }
     }
 
     // ---------------- LIST VENDORS BY STATUS ----------------
     @GetMapping("/status/{status}")
-    public List<Vendor> getVendorsByStatus(@PathVariable Status status) {
-        return userService.getVendorsByStatus(status);
+    public List<Vendor> getVendorsByStatus(@PathVariable String status) {
+        try {
+            Status enumStatus = Status.valueOf(status.toUpperCase());
+            return userService.getVendorsByStatus(enumStatus);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Invalid status: " + status
+            );
+        }
     }
 }

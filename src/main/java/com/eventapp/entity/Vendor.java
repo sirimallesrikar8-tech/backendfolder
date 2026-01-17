@@ -1,7 +1,9 @@
 package com.eventapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
 import java.util.List;
 
 @Entity
@@ -12,9 +14,10 @@ public class Vendor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Link to the User table
+    // 🔥 FIX 1: Ignore back-reference loop
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Column(nullable = false)
@@ -41,13 +44,17 @@ public class Vendor {
 
     // ---------------- RELATIONSHIPS ----------------
 
+    // 🔥 FIX 2: Prevent slot recursion
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<VendorSlot> slots;
 
+    // 🔥 FIX 3: Prevent media recursion
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<VendorMedia> mediaList;
 
-    // ⭐ FIXED: prevents infinite JSON loop
+    // ✅ Reviews already fixed
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<VendorReview> reviews;

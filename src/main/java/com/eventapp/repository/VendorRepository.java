@@ -12,18 +12,34 @@ import java.util.Optional;
 
 public interface VendorRepository extends JpaRepository<Vendor, Long> {
 
-    // ---------------- Existing ----------------
-    List<Vendor> findByLocationAndStatus(String location, Status status);
+    // ================= BASIC =================
 
     Optional<Vendor> findByUser(User user);
 
-    // ---------------- Search vendors by business name ----------------
-    @Query("SELECT v FROM Vendor v WHERE LOWER(v.businessName) LIKE LOWER(CONCAT('%', :name, '%'))")
+    // ✅ REQUIRED for /api/admin/vendor/status/{status}
+    List<Vendor> findByStatus(Status status);
+
+    // ================= FILTERING =================
+
+    List<Vendor> findByLocationAndStatus(String location, Status status);
+
+    // ================= SEARCH =================
+
+    @Query("""
+        SELECT v
+        FROM Vendor v
+        WHERE LOWER(v.businessName) LIKE LOWER(CONCAT('%', :name, '%'))
+    """)
     List<Vendor> searchByBusinessName(@Param("name") String name);
 
-    // ---------------- Get approved vendors by location ----------------
-    // ✅ FIX: enum passed safely as parameter (prevents 500)
-    @Query("SELECT v FROM Vendor v WHERE v.location = :location AND v.status = :status")
+    // ================= APPROVED VENDORS =================
+
+    @Query("""
+        SELECT v
+        FROM Vendor v
+        WHERE v.location = :location
+          AND v.status = :status
+    """)
     List<Vendor> findApprovedByLocation(
             @Param("location") String location,
             @Param("status") Status status
