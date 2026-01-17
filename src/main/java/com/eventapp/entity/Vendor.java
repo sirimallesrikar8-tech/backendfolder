@@ -6,14 +6,13 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "vendors")
+@Table(name = "vendors") // matches your actual table
 public class Vendor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Prevent infinite loop + lazy loading crash
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
@@ -41,38 +40,23 @@ public class Vendor {
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
-    // ---------- RELATIONSHIPS (IGNORE ALL IN JSON) ----------
-    @OneToMany(
-            mappedBy = "vendor",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    // Relationships
+    @OneToMany(mappedBy = "vendor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<VendorSlot> slots;
 
-    @OneToMany(
-            mappedBy = "vendor",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "vendor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<VendorMedia> mediaList;
 
-    @OneToMany(
-            mappedBy = "vendor",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "vendor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<VendorReview> reviews;
 
-    // ---------- CONSTRUCTORS ----------
+    // Constructors
     public Vendor() {}
 
-    // ---------- GETTERS & SETTERS ----------
+    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

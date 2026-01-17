@@ -1,7 +1,6 @@
 package com.eventapp.controller;
 
 import com.eventapp.dto.VendorResponseDTO;
-import com.eventapp.entity.Status;
 import com.eventapp.entity.Vendor;
 import com.eventapp.repository.VendorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,45 +17,68 @@ public class VendorSearchController {
     @Autowired
     private VendorRepository vendorRepository;
 
+    // ================= SEARCH BY NAME =================
     @GetMapping("/name")
-    public ResponseEntity<List<VendorResponseDTO>> searchByName(@RequestParam String name) {
-        List<VendorResponseDTO> response;
-        try {
-            List<Vendor> vendors = vendorRepository.searchApprovedVendorsByName(name, Status.APPROVED);
-            response = vendors.stream().map(this::mapToDTO).collect(Collectors.toList());
-        } catch (Exception e) {
-            e.printStackTrace();
-            response = List.of();
+    public ResponseEntity<?> searchByName(@RequestParam String name) {
+
+        if (name == null || name.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body("Search name cannot be empty");
         }
+
+        List<Vendor> vendors =
+                vendorRepository.searchApprovedVendorsByName(name.trim());
+
+        if (vendors.isEmpty()) {
+            return ResponseEntity.status(404)
+                    .body("No vendors found with name: " + name);
+        }
+
+        List<VendorResponseDTO> response = vendors.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+
         return ResponseEntity.ok(response);
     }
 
+    // ================= SEARCH BY LOCATION =================
     @GetMapping("/location")
-    public ResponseEntity<List<VendorResponseDTO>> searchByLocation(@RequestParam String location) {
-        List<VendorResponseDTO> response;
-        try {
-            List<Vendor> vendors = vendorRepository.findApprovedVendorsByLocation(location, Status.APPROVED);
-            response = vendors.stream().map(this::mapToDTO).collect(Collectors.toList());
-        } catch (Exception e) {
-            e.printStackTrace();
-            response = List.of();
+    public ResponseEntity<?> searchByLocation(@RequestParam String location) {
+
+        if (location == null || location.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body("Location cannot be empty");
         }
+
+        List<Vendor> vendors =
+                vendorRepository.searchApprovedVendorsByLocation(location.trim());
+
+        if (vendors.isEmpty()) {
+            return ResponseEntity.status(404)
+                    .body("No vendors found in location: " + location);
+        }
+
+        List<VendorResponseDTO> response = vendors.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+
         return ResponseEntity.ok(response);
     }
 
+    // ================= DTO MAPPER =================
     private VendorResponseDTO mapToDTO(Vendor vendor) {
-        VendorResponseDTO dto = new VendorResponseDTO();
-        dto.setId(vendor.getId());
-        dto.setBusinessName(vendor.getBusinessName() != null ? vendor.getBusinessName() : "");
-        dto.setCategory(vendor.getCategory() != null ? vendor.getCategory() : "");
-        dto.setLocation(vendor.getLocation() != null ? vendor.getLocation() : "");
-        dto.setStatus(vendor.getStatus() != null ? vendor.getStatus().name() : "");
 
-        if (vendor.getUser() != null) {
-            dto.setName(vendor.getUser().getName() != null ? vendor.getUser().getName() : "");
-            dto.setEmail(vendor.getUser().getEmail() != null ? vendor.getUser().getEmail() : "");
-            dto.setPhone(vendor.getUser().getPhone() != null ? vendor.getUser().getPhone() : "");
-        }
+        VendorResponseDTO dto = new VendorResponseDTO();
+
+        dto.setId(vendor.getId());
+        dto.setBusinessName(vendor.getBusinessName());
+        dto.setCategory(vendor.getCategory());
+        dto.setLocation(vendor.getLocation());
+        dto.setStatus(vendor.getStatus().name());
+
+        dto.setName(vendor.getUser().getName());
+        dto.setEmail(vendor.getUser().getEmail());
+        dto.setPhone(vendor.getUser().getPhone());
 
         return dto;
     }
