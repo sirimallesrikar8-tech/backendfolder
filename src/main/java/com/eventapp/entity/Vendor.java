@@ -19,11 +19,16 @@ public class Vendor {
     @JsonIgnore
     private User user;
 
-    @Column(nullable = false)
+    @Column(name = "business_name", nullable = false)
     private String businessName;
 
+    @Column(name = "category")
     private String category;
+
+    @Column(name = "phone")
     private String phone;
+
+    @Column(name = "location")
     private String location;
 
     @Column(name = "profile_image")
@@ -37,7 +42,6 @@ public class Vendor {
     private Status status = Status.PENDING;
 
     // ---------- RELATIONSHIPS (IGNORE ALL IN JSON) ----------
-
     @OneToMany(
             mappedBy = "vendor",
             fetch = FetchType.LAZY,
@@ -69,100 +73,39 @@ public class Vendor {
     public Vendor() {}
 
     // ---------- GETTERS & SETTERS ----------
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Long getId() {
-        return id;
-    }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getBusinessName() { return businessName; }
+    public void setBusinessName(String businessName) { this.businessName = businessName; }
 
-    public User getUser() {
-        return user;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
-    public String getBusinessName() {
-        return businessName;
-    }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public void setBusinessName(String businessName) {
-        this.businessName = businessName;
-    }
+    public String getProfileImage() { return profileImage; }
+    public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
 
-    public String getCategory() {
-        return category;
-    }
+    public String getCoverImage() { return coverImage; }
+    public void setCoverImage(String coverImage) { this.coverImage = coverImage; }
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
+    public Status getStatus() { return status; }
+    public void setStatus(Status status) { this.status = status; }
 
-    public String getPhone() {
-        return phone;
-    }
+    public List<VendorSlot> getSlots() { return slots; }
+    public void setSlots(List<VendorSlot> slots) { this.slots = slots; }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+    public List<VendorMedia> getMediaList() { return mediaList; }
+    public void setMediaList(List<VendorMedia> mediaList) { this.mediaList = mediaList; }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getProfileImage() {
-        return profileImage;
-    }
-
-    public void setProfileImage(String profileImage) {
-        this.profileImage = profileImage;
-    }
-
-    public String getCoverImage() {
-        return coverImage;
-    }
-
-    public void setCoverImage(String coverImage) {
-        this.coverImage = coverImage;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public List<VendorSlot> getSlots() {
-        return slots;
-    }
-
-    public void setSlots(List<VendorSlot> slots) {
-        this.slots = slots;
-    }
-
-    public List<VendorMedia> getMediaList() {
-        return mediaList;
-    }
-
-    public void setMediaList(List<VendorMedia> mediaList) {
-        this.mediaList = mediaList;
-    }
-
-    public List<VendorReview> getReviews() {
-        return reviews;
-    }
-
-    public void setReviews(List<VendorReview> reviews) {
-        this.reviews = reviews;
-    }
+    public List<VendorReview> getReviews() { return reviews; }
+    public void setReviews(List<VendorReview> reviews) { this.reviews = reviews; }
 }

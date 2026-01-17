@@ -18,7 +18,6 @@ public class VendorSearchController {
     @Autowired
     private VendorRepository vendorRepository;
 
-    // ---------------- SEARCH VENDORS BY BUSINESS NAME ----------------
     @GetMapping("/name")
     public ResponseEntity<List<VendorResponseDTO>> searchByName(@RequestParam String name) {
         List<VendorResponseDTO> response;
@@ -26,14 +25,12 @@ public class VendorSearchController {
             List<Vendor> vendors = vendorRepository.searchApprovedVendorsByName(name, Status.APPROVED);
             response = vendors.stream().map(this::mapToDTO).collect(Collectors.toList());
         } catch (Exception e) {
-            // Log the exception if needed
             e.printStackTrace();
-            response = List.of(); // return empty list instead of 500
+            response = List.of();
         }
         return ResponseEntity.ok(response);
     }
 
-    // ---------------- SEARCH VENDORS BY LOCATION ----------------
     @GetMapping("/location")
     public ResponseEntity<List<VendorResponseDTO>> searchByLocation(@RequestParam String location) {
         List<VendorResponseDTO> response;
@@ -41,14 +38,12 @@ public class VendorSearchController {
             List<Vendor> vendors = vendorRepository.findApprovedVendorsByLocation(location, Status.APPROVED);
             response = vendors.stream().map(this::mapToDTO).collect(Collectors.toList());
         } catch (Exception e) {
-            // Log the exception if needed
             e.printStackTrace();
-            response = List.of(); // return empty list instead of 500
+            response = List.of();
         }
         return ResponseEntity.ok(response);
     }
 
-    // ---------------- MAPPING METHOD ----------------
     private VendorResponseDTO mapToDTO(Vendor vendor) {
         VendorResponseDTO dto = new VendorResponseDTO();
         dto.setId(vendor.getId());

@@ -22,7 +22,7 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
         SELECT v
         FROM Vendor v
         WHERE v.businessName IS NOT NULL
-          AND LOWER(v.businessName) LIKE LOWER(CONCAT('%', :name, '%'))
+          AND LOWER(TRIM(v.businessName)) LIKE LOWER(CONCAT('%', :name, '%'))
           AND v.status = :status
     """)
     List<Vendor> searchApprovedVendorsByName(
@@ -35,7 +35,7 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
         SELECT v
         FROM Vendor v
         WHERE v.location IS NOT NULL
-          AND LOWER(v.location) LIKE LOWER(CONCAT('%', :location, '%'))
+          AND LOWER(TRIM(v.location)) LIKE LOWER(CONCAT('%', :location, '%'))
           AND v.status = :status
     """)
     List<Vendor> findApprovedVendorsByLocation(
