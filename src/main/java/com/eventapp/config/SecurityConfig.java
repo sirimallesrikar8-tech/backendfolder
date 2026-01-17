@@ -41,10 +41,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/api/auth/**",
+                        "/api/vendors/search",      // ✅ allow search
+                        "/api/vendors/location",    // ✅ allow location
+                        "/api/vendors/*",           // ✅ view vendor details
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**",
-                        "/uploads/**",     // ✅ 🔥 VERY IMPORTANT FIX
+                        "/uploads/**",
                         "/error"
                 ).permitAll()
                 .anyRequest().authenticated()
@@ -70,12 +73,15 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(
+                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        );
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(false);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
         return source;

@@ -18,18 +18,20 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
 
     List<Vendor> findByStatus(Status status);
 
-    // ================= SEARCH (NULL SAFE + CASE INSENSITIVE) =================
-
+    // ================= SEARCH BY BUSINESS NAME =================
     @Query("""
         SELECT v
         FROM Vendor v
         WHERE v.businessName IS NOT NULL
           AND LOWER(v.businessName) LIKE LOWER(CONCAT('%', :name, '%'))
+          AND v.status = :status
     """)
-    List<Vendor> searchByBusinessName(@Param("name") String name);
+    List<Vendor> searchApprovedVendorsByName(
+            @Param("name") String name,
+            @Param("status") Status status
+    );
 
-    // ================= LOCATION (NULL SAFE + CASE INSENSITIVE) =================
-
+    // ================= SEARCH BY LOCATION =================
     @Query("""
         SELECT v
         FROM Vendor v
@@ -37,7 +39,7 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
           AND LOWER(v.location) = LOWER(:location)
           AND v.status = :status
     """)
-    List<Vendor> findApprovedByLocation(
+    List<Vendor> findApprovedVendorsByLocation(
             @Param("location") String location,
             @Param("status") Status status
     );

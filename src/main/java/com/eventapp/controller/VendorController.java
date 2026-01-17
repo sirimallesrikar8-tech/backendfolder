@@ -8,7 +8,6 @@ import com.eventapp.entity.Vendor;
 import com.eventapp.entity.VendorReview;
 import com.eventapp.repository.UserRepository;
 import com.eventapp.repository.VendorRepository;
-import com.eventapp.service.UserService;
 import com.eventapp.service.VendorReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,13 +26,40 @@ public class VendorController {
     private VendorRepository vendorRepository;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private VendorReviewService vendorReviewService;
 
     @Autowired
     private UserRepository userRepository;
+
+    // ---------------- SEARCH VENDORS BY BUSINESS NAME ----------------
+    @GetMapping("/search")
+    public ResponseEntity<List<VendorResponseDTO>> searchVendors(
+            @RequestParam String name
+    ) {
+        List<Vendor> vendors =
+                vendorRepository.searchApprovedVendorsByName(name, Status.APPROVED);
+
+        return ResponseEntity.ok(
+                vendors.stream()
+                        .map(this::mapToVendorResponse)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    // ---------------- GET VENDORS BY LOCATION ----------------
+    @GetMapping("/location")
+    public ResponseEntity<List<VendorResponseDTO>> getVendorsByLocation(
+            @RequestParam String location
+    ) {
+        List<Vendor> vendors =
+                vendorRepository.findApprovedVendorsByLocation(location, Status.APPROVED);
+
+        return ResponseEntity.ok(
+                vendors.stream()
+                        .map(this::mapToVendorResponse)
+                        .collect(Collectors.toList())
+        );
+    }
 
     // ---------------- POST A REVIEW FOR A VENDOR ----------------
     @PostMapping("/{vendorId}/reviews")
@@ -56,7 +82,6 @@ public class VendorController {
         } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
         } catch (Exception ex) {
-            ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Something went wrong");
         }
@@ -88,58 +113,6 @@ public class VendorController {
         return ResponseEntity.ok(vendorReviewService.getAverageRating(vendorId));
     }
 
-    // ---------------- GET VENDORS BY STATUS ----------------
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<VendorResponseDTO>> getVendorsByStatus(@PathVariable String status) {
-
-        Status st;
-        try {
-            st = Status.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(List.of());
-        }
-
-        List<Vendor> vendors = userService.getVendorsByStatus(st);
-
-        return ResponseEntity.ok(
-                vendors.stream()
-                        .map(this::mapToVendorResponse)
-                        .collect(Collectors.toList())
-        );
-    }
-
-    // ---------------- SEARCH VENDORS BY NAME ----------------
-    @GetMapping("/search")
-    public ResponseEntity<List<VendorResponseDTO>> searchVendors(@RequestParam String name) {
-        try {
-            return ResponseEntity.ok(
-                    vendorRepository.searchByBusinessName(name)
-                            .stream()
-                            .map(this::mapToVendorResponse)
-                            .collect(Collectors.toList())
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(List.of());
-        }
-    }
-
-    // ---------------- GET VENDORS BY LOCATION ----------------
-    @GetMapping("/location")
-    public ResponseEntity<List<VendorResponseDTO>> getVendorsByLocation(@RequestParam String location) {
-        try {
-            return ResponseEntity.ok(
-                    vendorRepository.findApprovedByLocation(location, Status.APPROVED)
-                            .stream()
-                            .map(this::mapToVendorResponse)
-                            .collect(Collectors.toList())
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(List.of());
-        }
-    }
-
     // ---------------- MAPPING METHODS ----------------
     private VendorResponseDTO mapToVendorResponse(Vendor vendor) {
         VendorResponseDTO dto = new VendorResponseDTO();
@@ -167,15 +140,6 @@ public class VendorController {
             );
             dto.setPhone(
                     vendor.getUser().getPhone() != null ? vendor.getUser().getPhone() : ""
-            );
-        }
-
-        if (vendor.getReviews() != null) {
-            dto.setReviews(
-                    vendor.getReviews()
-                            .stream()
-                            .map(this::mapToReviewDTO)
-                            .collect(Collectors.toList())
             );
         }
 

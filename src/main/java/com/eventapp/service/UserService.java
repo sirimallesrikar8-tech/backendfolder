@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 
 @Service
 public class UserService {
@@ -206,10 +205,5 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Vendor not found"));
         vendor.setStatus(status);
         return vendorRepository.save(vendor);
-    }
-
-    // ✅ FIXED: SAFE & FAST
-    public List<Vendor> getVendorsByStatus(Status status) {
-        return vendorRepository.findByStatus(status);
     }
 }
